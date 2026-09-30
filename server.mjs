@@ -3,7 +3,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const root = path.dirname(fileURLToPath(import.meta.url));
+const sourceRoot = path.dirname(fileURLToPath(import.meta.url));
+const root = process.env.SERVE_PUBLIC === '1' ? path.join(sourceRoot, 'public') : sourceRoot;
 const port = Number(process.env.PORT || 3001);
 const types = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
