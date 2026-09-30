@@ -23,9 +23,8 @@ for (const route of ['produto/autobar', 'checkout', 'politicas', 'rastreio']) {
   html = html.replace("connect-src 'self' https://personalizecar.vercel.app", "connect-src 'self' https://personalizecar.vercel.app https://analytics.tiktok.com https://*.tiktok.com https://www.facebook.com https://cdn.utmify.com.br");
   html = html.replace('<strong class="text-neutral-600">5% de cashback</strong> para a próxima compra','<strong class="text-neutral-600">Pagamento via Pix</strong> com confirmação automática');
   html = html.replace('Diversão, conforto e segurança.','Praticidade para sua viagem.').replace('Receba ofertas exclusivas, novidades e dicas para a criançada assinando nossa newsletter.','Receba novidades e ofertas exclusivas da Central Ideal.');
-  html = html.replace('Brincar é coisa séria. Na <strong class="font-bold text-white">Central Ideal</strong>, criamos produtos que unem <strong class="font-bold text-white">segurança</strong>, qualidade e aquela dose de diversão que faz cada dia virar memória de infância.','Na <strong class="font-bold text-white">Central Ideal</strong>, criamos produtos práticos para acompanhar seus momentos na estrada.');
-  html = html.replace(/<div class="mt-8 flex flex-wrap items-center gap-2"><img[^]*?<\/div>/,'<div class="mt-8 flex flex-wrap items-center gap-2"><span class="rounded bg-white px-4 py-2 text-sm font-bold text-neutral-800">Pix</span></div>');
-  html = html.replace('</head>', '<script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script><script src="/checkout-bridge.js"></script><script defer src="/marketing.js"></script><script defer src="/checkout-notice.js"></script></head>');
+  html = html.replaceAll('Pix e cartão em até 12x.','Pagamento via Pix.');
+  html = html.replace('</head>', '<style>div.mt-8.flex.flex-wrap.items-center.gap-2:has(> img[alt="Visa"]) > img { display:none!important }div.mt-8.flex.flex-wrap.items-center.gap-2:has(> img[alt="Visa"])::after { content:"Pix";display:inline-block;background:#fff;color:#262626;border-radius:4px;padding:6px 18px;font-weight:700 }</style><script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script><script src="/checkout-bridge.js"></script><script defer src="/marketing.js"></script><script defer src="/checkout-notice.js"></script></head>');
   await fs.writeFile(page, html);
 }
 {
@@ -38,6 +37,8 @@ let product=await fs.readFile(productBundle,'utf8');
 const uploadMarker='let i=`vehicle-photos/${crypto.randomUUID()}.${r.extension}`,{error:o}={error:null};';
 if(!product.includes(uploadMarker))throw Error('Trecho de envio de foto mudou');
 product=product.replace(uploadMarker,'let{path:i,error:o}=await window.autobarUploadPhoto(r.blob,r.contentType);').replace('r=await t(e,1600,.82)','r=await t(e,1200,.72)');
+if(!product.includes('Pix e cartão em até 12x.'))throw Error('Texto de pagamento do produto mudou');
+product=product.replace('Pix e cartão em até 12x.','Pagamento via Pix.');
 await fs.writeFile(productBundle,product);
 const checkoutBundle=path.join(out,'assets','checkout-C2qFdlwJ.js');
 let checkout=await fs.readFile(checkoutBundle,'utf8');
@@ -53,7 +54,16 @@ checkout=checkout.replace(zipGuard,zipGuard+'if(!/^\\d{8}$/.test(B.replace(/\\D/
 checkout=checkout.replace(numberGuard,numberGuard+'if(!/^\\d{1,10}$/.test(nt.trim())||Number(nt)<1){S.error(`Digite um número de endereço válido`);return}');
 checkout=checkout.replace('KIDS10:{pct:10},TESTE777:{pct:95}','KIDS10:{pct:10}');
 checkout=checkout.replace('k=b(`pay_card`)','k=!1');
+if(!checkout.includes('5% de cashback')||!checkout.includes(' para a próxima compra'))throw Error('Texto do checkout mudou');
+checkout=checkout.replace('5% de cashback','Pagamento via Pix').replace(' para a próxima compra',' com confirmação automática');
 await fs.writeFile(checkoutBundle,checkout);
+const footerBundle=path.join(out,'assets','Footer-CXUy4S6e.js');
+let footer=await fs.readFile(footerBundle,'utf8');
+for(const [before,after] of [['Diversão, conforto e segurança.','Praticidade para sua viagem.'],['Receba ofertas exclusivas, novidades e dicas para a criançada assinando nossa newsletter.','Receba novidades e ofertas exclusivas da Central Ideal.']]){
+  if(!footer.includes(before))throw Error('Texto do rodapé mudou');
+  footer=footer.replace(before,after);
+}
+await fs.writeFile(footerBundle,footer);
 const trackingBundle=path.join(out,'assets','rastreio-DIZAdoen.js');
 let tracking=await fs.readFile(trackingBundle,'utf8');
 const trackingCall='await a.rpc(`lookup_tracking`,{q:n})';
