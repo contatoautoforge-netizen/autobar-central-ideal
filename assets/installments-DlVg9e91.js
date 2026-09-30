@@ -1,0 +1,1 @@
+var e={1:0,2:23,3:24.1,4:26.15,5:23.27,6:25.5,7:26.5,8:29.7,9:28.3,10:37,11:38,12:39};function t(t,n){let r=e[n]??0;return Math.round(t*(1+r/100))}function n(e,n){return Math.round(n<=1?e:t(e,n)/n)}export{n,t};

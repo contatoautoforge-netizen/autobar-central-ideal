@@ -1,0 +1,3 @@
+function e(e,t){return e[`home_${t}_enabled`]!==`0`}function t(e,t,n){let r=e[`home_${t}`];return r&&r.trim()?r:n}function n(e,t,n){let r=(e[`home_${t}`]??``).split(`
+`).map(e=>e.trim()).filter(Boolean);return r.length?r:n}function r(e,t,n,r,i){let a=(e[`home_${t}`]??``).split(`
+`).map(e=>e.trim()).filter(Boolean).map(e=>{let[t,...n]=e.split(`|`);return{[r]:t.trim(),[i]:n.join(`|`).trim()}});return a.length?a:n}export{t as i,n,r,e as t};

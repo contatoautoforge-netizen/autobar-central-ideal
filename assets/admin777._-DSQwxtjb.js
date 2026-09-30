@@ -1,0 +1,1 @@
+import{t as e}from"./Admin-CjADOw3x.js";var t=e;export{t as component};
