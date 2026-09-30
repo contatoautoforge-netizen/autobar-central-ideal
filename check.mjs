@@ -24,4 +24,6 @@ for (const [name, marker] of pages) {
 const built=await fs.readFile(path.join(root,'public','produto','autobar','index.html'),'utf8');
 const marketing=await fs.readFile(path.join(root,'public','marketing.js'),'utf8');
 if(!built.includes('/marketing.js')||!built.includes('cdn.utmify.com.br/scripts/utms/latest.js')||!marketing.includes('DAT8TNJC77U5PB60DTT0')||!marketing.includes('969483765461099')||marketing.includes('cdn.utmify.com.br/scripts/pixel/pixel.js'))throw Error('Pixels da GelaCar não estão presentes no build');
+const checkout=await fs.readFile(path.join(root,'public','assets','checkout-C2qFdlwJ.js'),'utf8');
+if(!checkout.includes('Digite um celular ou telefone válido com DDD')||!checkout.includes('CPF inválido. Verifique e tente novamente.')||!checkout.includes('Digite um CEP válido'))throw Error('Validações do checkout ausentes');
 console.log(`OK: ${pages.length} páginas, ${checked} referências locais e pixels compartilhados`);

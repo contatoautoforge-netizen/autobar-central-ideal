@@ -2,8 +2,10 @@
   const id = 'autobar-checkout-notice';
   let scheduled = false;
   let checkoutEnabled = false;
+  let pageLoaded = document.readyState === 'complete';
   function sync() {
     scheduled = false;
+    if (!pageLoaded) return;
     const existing = document.getElementById(id);
     if (location.pathname !== '/checkout' || checkoutEnabled) {
       existing?.remove();
@@ -24,7 +26,7 @@
   }
   new MutationObserver(schedule).observe(document.documentElement, { childList: true, subtree: true });
   window.addEventListener('popstate', schedule);
-  window.addEventListener('load', schedule);
+  window.addEventListener('load', () => { pageLoaded = true; schedule(); });
   fetch('https://personalizecar.vercel.app/api/autobar?action=config', {method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).then(r=>r.ok?r.json():null).then(data=>{checkoutEnabled=data?.checkoutEnabled===true;schedule()}).catch(()=>{});
   schedule();
 })();

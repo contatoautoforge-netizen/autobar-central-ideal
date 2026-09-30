@@ -41,6 +41,16 @@ product=product.replace(uploadMarker,'let{path:i,error:o}=await window.autobarUp
 await fs.writeFile(productBundle,product);
 const checkoutBundle=path.join(out,'assets','checkout-C2qFdlwJ.js');
 let checkout=await fs.readFile(checkoutBundle,'utf8');
+const phoneGuard='if(Le===`required`&&!z.trim()){S.error(`Preencha o celular / WhatsApp`);return}';
+if(!checkout.includes(phoneGuard))throw Error('Validação do telefone mudou no checkout');
+checkout=checkout.replace(phoneGuard,phoneGuard+'if(z.trim()&&!/^(?:1[1-9]|2[12478]|3[1-578]|4[1-9]|5[1345]|6[1-9]|7[134579]|8[1-9]|9[1-9])(?:[2-5]\\d{7}|9\\d{8})$/.test(z.replace(/\\D/g,``))){S.error(`Digite um celular ou telefone válido com DDD`);return}');
+const nameGuard='if(!I.trim()){S.error(`Preencha o nome completo`);return}';
+const zipGuard='if(!B.trim()){S.error(`Preencha o CEP`);return}';
+const numberGuard='if(!nt.trim()){S.error(`Preencha o número da casa`);return}';
+for(const marker of [nameGuard,zipGuard,numberGuard])if(!checkout.includes(marker))throw Error('Validação de identificação ou entrega mudou no checkout');
+checkout=checkout.replace(nameGuard,nameGuard+'if(I.trim().split(/\\s+/).length<2){S.error(`Digite nome e sobrenome`);return}');
+checkout=checkout.replace(zipGuard,zipGuard+'if(!/^\\d{8}$/.test(B.replace(/\\D/g,``))){S.error(`Digite um CEP válido`);return}');
+checkout=checkout.replace(numberGuard,numberGuard+'if(!/^\\d{1,10}$/.test(nt.trim())||Number(nt)<1){S.error(`Digite um número de endereço válido`);return}');
 checkout=checkout.replace('KIDS10:{pct:10},TESTE777:{pct:95}','KIDS10:{pct:10}');
 checkout=checkout.replace('k=b(`pay_card`)','k=!1');
 await fs.writeFile(checkoutBundle,checkout);
