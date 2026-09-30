@@ -19,6 +19,10 @@ for (const route of ['produto/autobar', 'checkout', 'politicas', 'rastreio']) {
   const page = path.join(out, route, 'index.html');
   let html = await fs.readFile(page, 'utf8');
   html = html.replace("connect-src 'self'", "connect-src 'self' https://personalizecar.vercel.app");
+  html = html.replace('<strong class="text-neutral-600">5% de cashback</strong> para a próxima compra','<strong class="text-neutral-600">Pagamento via Pix</strong> com confirmação automática');
+  html = html.replace('Diversão, conforto e segurança.','Praticidade para sua viagem.').replace('Receba ofertas exclusivas, novidades e dicas para a criançada assinando nossa newsletter.','Receba novidades e ofertas exclusivas da Central Ideal.');
+  html = html.replace('Brincar é coisa séria. Na <strong class="font-bold text-white">Central Ideal</strong>, criamos produtos que unem <strong class="font-bold text-white">segurança</strong>, qualidade e aquela dose de diversão que faz cada dia virar memória de infância.','Na <strong class="font-bold text-white">Central Ideal</strong>, criamos produtos práticos para acompanhar seus momentos na estrada.');
+  html = html.replace(/<div class="mt-8 flex flex-wrap items-center gap-2"><img[^]*?<\/div>/,'<div class="mt-8 flex flex-wrap items-center gap-2"><span class="rounded bg-white px-4 py-2 text-sm font-bold text-neutral-800">Pix</span></div>');
   html = html.replace('</head>', '<script src="/checkout-bridge.js"></script><script defer src="/checkout-notice.js"></script></head>');
   await fs.writeFile(page, html);
 }
