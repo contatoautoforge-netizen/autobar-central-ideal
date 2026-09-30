@@ -24,6 +24,17 @@ for (const route of ['produto/autobar', 'checkout', 'politicas', 'rastreio']) {
   html = html.replace('<strong class="text-neutral-600">5% de cashback</strong> para a próxima compra','<strong class="text-neutral-600">Pagamento via Pix</strong> com confirmação automática');
   html = html.replace('Diversão, conforto e segurança.','Praticidade para sua viagem.').replace('Receba ofertas exclusivas, novidades e dicas para a criançada assinando nossa newsletter.','Receba novidades e ofertas exclusivas da Central Ideal.');
   html = html.replaceAll('Pix e cartão em até 12x.','Pagamento via Pix.');
+  if(route==='produto/autobar'){
+    for(const [before,after] of [
+      ['"price":"18410.00"','"price":"79.00"'],['price:18410','price:7900'],
+      ['R$\u00a0184,10','R$\u00a079,00'],['R$\u00a0331,38','R$\u00a0119,00'],
+      ['R$\u00a0115,90','R$\u00a0221,00'],['R$\u00a0268,62','R$\u00a0481,00'],
+      ['39<!-- -->% OFF','74<!-- -->% OFF'],['45<!-- -->% OFF','80<!-- -->% OFF']
+    ]){
+      if(!html.includes(before))throw Error(`Preço exibido mudou: ${before}`);
+      html=html.replaceAll(before,after);
+    }
+  }
   html = html.replace('</head>', '<style>div.mt-8.flex.flex-wrap.items-center.gap-2:has(> img[alt="Visa"]) > img { display:none!important }div.mt-8.flex.flex-wrap.items-center.gap-2:has(> img[alt="Visa"])::after { content:"Pix";display:inline-block;background:#fff;color:#262626;border-radius:4px;padding:6px 18px;font-weight:700 }</style><script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script><script src="/checkout-bridge.js"></script><script defer src="/marketing.js"></script><script defer src="/checkout-notice.js"></script></head>');
   await fs.writeFile(page, html);
 }
@@ -39,6 +50,9 @@ if(!product.includes(uploadMarker))throw Error('Trecho de envio de foto mudou');
 product=product.replace(uploadMarker,'let{path:i,error:o}=await window.autobarUploadPhoto(r.blob,r.contentType);').replace('r=await t(e,1600,.82)','r=await t(e,1200,.72)');
 if(!product.includes('Pix e cartão em até 12x.'))throw Error('Texto de pagamento do produto mudou');
 product=product.replace('Pix e cartão em até 12x.','Pagamento via Pix.');
+const autobarTier='if(n&&n.offer_mode===`kit2`){let e=n.price,t=n.compare_at_price&&n.compare_at_price>e?n.compare_at_price:Math.round(e*1.63),r=n.name.split(` `)[0];return[{id:1,quantity:1,price:e,compareAtPrice:t,label:`1 ${r}`},{id:2,quantity:2,price:Math.round(e*1.8),compareAtPrice:t*2,label:`2 ${r}`,badge:`Melhor Preço`}]}';
+if(!product.includes(autobarTier))throw Error('Cálculo da segunda oferta mudou');
+product=product.replace(autobarTier,autobarTier.replace('price:Math.round(e*1.8)','price:n.slug===`autobar`?11900:Math.round(e*1.8)'));
 await fs.writeFile(productBundle,product);
 const checkoutBundle=path.join(out,'assets','checkout-C2qFdlwJ.js');
 let checkout=await fs.readFile(checkoutBundle,'utf8');
@@ -56,7 +70,21 @@ checkout=checkout.replace('KIDS10:{pct:10},TESTE777:{pct:95}','KIDS10:{pct:10}')
 checkout=checkout.replace('k=b(`pay_card`)','k=!1');
 if(!checkout.includes('5% de cashback')||!checkout.includes(' para a próxima compra'))throw Error('Texto do checkout mudou');
 checkout=checkout.replace('5% de cashback','Pagamento via Pix').replace(' para a próxima compra',' com confirmação automática');
+const pixDiscount='J=W===`pix`&&j===3?Math.round(c*.05):0';
+if(!checkout.includes(pixDiscount))throw Error('Cálculo do desconto Pix mudou');
+checkout=checkout.replace(pixDiscount,'J=0').replace('b(`pix_badge`)&&(0,w.jsx)','!1&&(0,w.jsx)');
 await fs.writeFile(checkoutBundle,checkout);
+const cartBundle=path.join(out,'assets','index-DCpKv0un.js');
+let cart=await fs.readFile(cartBundle,'utf8');
+for(const [before,after] of [
+  ['function _p(e,t){return t>=3?Math.round(e*2.5):t===2?Math.round(e*1.8):e}','function _p(e,t){return e===7900&&t===2?11900:t>=3?Math.round(e*2.5):t===2?Math.round(e*1.8):e}'],
+  ['let r=Number(t.price)||e.price','let r=e.slug===`autobar`?7900:Number(t.price)||e.price'],
+  ['Math.min(3,Math.max(1,r))','Math.min(n.slug===`autobar`?2:3,Math.max(1,r))']
+]){
+  if(!cart.includes(before))throw Error('Cálculo do carrinho mudou');
+  cart=cart.replace(before,after);
+}
+await fs.writeFile(cartBundle,cart);
 const footerBundle=path.join(out,'assets','Footer-CXUy4S6e.js');
 let footer=await fs.readFile(footerBundle,'utf8');
 for(const [before,after] of [['Diversão, conforto e segurança.','Praticidade para sua viagem.'],['Receba ofertas exclusivas, novidades e dicas para a criançada assinando nossa newsletter.','Receba novidades e ofertas exclusivas da Central Ideal.']]){

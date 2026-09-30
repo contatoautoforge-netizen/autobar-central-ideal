@@ -3,6 +3,16 @@
   const originalFetch=window.fetch.bind(window);
   const marketingKeys=['src','sck','utm_source','utm_medium','utm_campaign','utm_content','utm_term','utm_id','fbclid','ttclid'];
   const checkoutErrors={INVALID_ORDER:'Confira os dados do pedido e tente novamente.',INVALID_CUSTOMER:'Confira nome, e-mail, telefone e CPF.',INVALID_ADDRESS:'Confira CEP e endereço de entrega.',INVALID_PRODUCT:'O produto mudou. Atualize a página e tente novamente.',INVALID_TOTAL:'O valor do pedido mudou. Atualize a página e confira o total.',INVALID_PHOTO:'Não foi possível validar a foto. Envie novamente.',PIX_MISSING:'O gateway não retornou o código Pix. Aguarde e tente novamente.',REQUEST_CONFLICT:'Os dados do pedido mudaram. Atualize a página e tente novamente.',PAYMENT_UNAVAILABLE:'Não foi possível confirmar o Pix agora. Aguarde e tente novamente.'};
+  try{
+    const key='store:cart',items=JSON.parse(localStorage.getItem(key)||'[]');
+    if(Array.isArray(items)&&items.some(item=>item.id==='cc63486e-33dc-445a-acdf-8f93cdac3cf8'&&item.slug==='autobar')){
+      localStorage.setItem(key,JSON.stringify(items.map(item=>{
+        if(item.id!=='cc63486e-33dc-445a-acdf-8f93cdac3cf8'||item.slug!=='autobar')return item;
+        const kitQty=item.kitQty>=2?2:1;
+        return {...item,price:kitQty===2?11900:7900,...(item.kitQty?{kitQty,basePrice:7900,units:Array.isArray(item.units)?item.units.slice(0,kitQty):item.units}:{})};
+      })));
+    }
+  }catch{}
   const attribution=()=>{const q=new URLSearchParams(location.search),next=Object.fromEntries(marketingKeys.map(k=>[k,q.get(k)]).filter(([,v])=>v).map(([k,v])=>[k,v.slice(0,200)]));if(Object.keys(next).length)sessionStorage.setItem('autobar_attribution',JSON.stringify(next));try{return JSON.parse(sessionStorage.getItem('autobar_attribution')||'{}')}catch{return {}}};
   const source=()=>{const a=attribution(),utm=String(a.utm_source||'').toLowerCase();return a.ttclid||utm.includes('tiktok')?'TikTok Ads':a.fbclid||/facebook|instagram|meta|fb/.test(utm)?'Meta Ads':utm?'Outras campanhas':'Orgânico/Direto'};
   const stage=()=>location.pathname==='/checkout'?'checkout':location.pathname==='/pagamento-pix'?'payment':'home';

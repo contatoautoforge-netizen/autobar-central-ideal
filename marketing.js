@@ -6,7 +6,7 @@
   !function(w,d,s,u){if(w.fbq)return;let f=w.fbq=function(){f.callMethod?f.callMethod.apply(f,arguments):f.queue.push(arguments)};if(!w._fbq)w._fbq=f;f.push=f;f.queue=[];f.loaded=true;f.version='2.0';let el=d.createElement(s);el.async=true;el.src=u;d.head.append(el)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
   window.fbq('init',metaPixel);window.fbq('trackSingle',metaPixel,'PageView');
   const props=amount=>({content_id:product,content_ids:[product],content_type:'product',currency:'BRL',...(Number.isFinite(amount)&&amount>0?{value:amount}:{}),product_name:'AutoBar',store_name:'AutoBar'});
-  const cartValue=()=>{try{const items=JSON.parse(localStorage.getItem('store:cart')||'[]');const cents=items.reduce((sum,item)=>sum+Number(item.price)*Number(item.quantity),0);return Number.isFinite(cents)&&cents>0?cents/100:184.10}catch{return 184.10}};
+  const cartValue=()=>{try{const items=JSON.parse(localStorage.getItem('store:cart')||'[]');const cents=items.reduce((sum,item)=>sum+Number(item.price)*Number(item.quantity),0);return Number.isFinite(cents)&&cents>0?cents/100:79}catch{return 79}};
   function track(event,id,amount){if(seen(event+'_'+id))return;const eventId=event+'_'+id,data=props(amount);try{window.ttq.track(event,data,{event_id:eventId})}catch{}try{window.fbq('trackSingle',metaPixel,event,data,{eventID:eventId})}catch{}mark(eventId)}
   const session=()=>{let id=sessionStorage.getItem('autobar_session');if(!id){id=crypto.randomUUID();sessionStorage.setItem('autobar_session',id)}return id};
   function route(){if(location.pathname==='/produto/autobar')track('ViewContent',session(),cartValue());if(location.pathname==='/checkout')track('InitiateCheckout',session(),cartValue())}
