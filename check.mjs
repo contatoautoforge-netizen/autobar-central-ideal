@@ -6,6 +6,7 @@ const root = path.dirname(fileURLToPath(import.meta.url));
 const pages = [
   ['produto/autobar/index.html', 'AutoBar™'],
   ['checkout/index.html', 'Checkout seguro'],
+  ['pagamento-pix/index.html', 'Pagamento Pix'],
   ['politicas/index.html', 'Política'],
   ['rastreio/index.html', 'Rastrear'],
 ];

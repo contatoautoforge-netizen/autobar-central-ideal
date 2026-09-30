@@ -16,6 +16,7 @@ const types = {
 const routes = new Map([
   ['/produto/autobar', '/produto/autobar/index.html'],
   ['/checkout', '/checkout/index.html'],
+  ['/pagamento-pix', '/pagamento-pix/index.html'],
   ['/politicas', '/politicas/index.html'],
   ['/rastreio', '/rastreio/index.html'],
 ]);

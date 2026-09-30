@@ -9,6 +9,7 @@
   "rewrites": [
     { "source": "/produto/autobar", "destination": "/produto/autobar/index.html" },
     { "source": "/checkout", "destination": "/checkout/index.html" },
+    { "source": "/pagamento-pix", "destination": "/pagamento-pix/index.html" },
     { "source": "/politicas", "destination": "/politicas/index.html" },
     { "source": "/rastreio", "destination": "/rastreio/index.html" }
   ]

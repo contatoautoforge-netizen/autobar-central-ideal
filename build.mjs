@@ -8,17 +8,40 @@ if (!out.startsWith(root + path.sep)) throw new Error('Diretório de saída inv�
 await fs.rm(out, { recursive: true, force: true });
 await fs.mkdir(out, { recursive: true });
 
-for (const name of ['assets', 'media', 'produto', 'checkout', 'politicas', 'rastreio']) {
+for (const name of ['assets', 'media', 'produto', 'checkout', 'pagamento-pix', 'politicas', 'rastreio']) {
   await fs.cp(path.join(root, name), path.join(out, name), { recursive: true });
 }
-for (const name of ['favicon.png', 'apple-touch-icon.png', 'site.webmanifest', 'checkout-notice.js']) {
+for (const name of ['favicon.png', 'apple-touch-icon.png', 'site.webmanifest', 'checkout-notice.js', 'checkout-bridge.js', 'pix.js']) {
   await fs.copyFile(path.join(root, name), path.join(out, name));
 }
 
 for (const route of ['produto/autobar', 'checkout', 'politicas', 'rastreio']) {
   const page = path.join(out, route, 'index.html');
   let html = await fs.readFile(page, 'utf8');
-  html = html.replace('</head>', '<script defer src="/checkout-notice.js"></script></head>');
+  html = html.replace("connect-src 'self'", "connect-src 'self' https://personalizecar.vercel.app");
+  html = html.replace('</head>', '<script src="/checkout-bridge.js"></script><script defer src="/checkout-notice.js"></script></head>');
   await fs.writeFile(page, html);
 }
+const productBundle=path.join(out,'assets','produto._slug-BeuPeFaD.js');
+let product=await fs.readFile(productBundle,'utf8');
+const uploadMarker='let i=`vehicle-photos/${crypto.randomUUID()}.${r.extension}`,{error:o}={error:null};';
+if(!product.includes(uploadMarker))throw Error('Trecho de envio de foto mudou');
+product=product.replace(uploadMarker,'let{path:i,error:o}=await window.autobarUploadPhoto(r.blob,r.contentType);').replace('r=await t(e,1600,.82)','r=await t(e,1200,.72)');
+await fs.writeFile(productBundle,product);
+const checkoutBundle=path.join(out,'assets','checkout-C2qFdlwJ.js');
+let checkout=await fs.readFile(checkoutBundle,'utf8');
+checkout=checkout.replace('KIDS10:{pct:10},TESTE777:{pct:95}','KIDS10:{pct:10}');
+checkout=checkout.replace('k=b(`pay_card`)','k=!1');
+await fs.writeFile(checkoutBundle,checkout);
+const trackingBundle=path.join(out,'assets','rastreio-DIZAdoen.js');
+let tracking=await fs.readFile(trackingBundle,'utf8');
+const trackingCall='await a.rpc(`lookup_tracking`,{q:n})';
+if(!tracking.includes(trackingCall))throw Error('Busca de rastreio mudou');
+tracking=tracking.replace(trackingCall,'await window.autobarLookupTracking(n)');
+const timelineStart=tracking.indexOf('function A(e){'),timelineEnd=tracking.indexOf('function j(){',timelineStart);
+if(timelineStart<0||timelineEnd<0)throw Error('Linha do tempo mudou');
+const timeline='function A(e){const steps=[{icon:(0,T.jsx)(m,{className:`h-5 w-5`}),title:`Pedido recebido`,desc:`Seu pedido foi registrado.`,date:e.created_at,done:!0},{icon:(0,T.jsx)(c,{className:`h-5 w-5`}),title:`Pagamento confirmado`,desc:e.paid_at?`Pagamento aprovado.`:`Aguardando confirmação do pagamento.`,date:e.paid_at,done:!!e.paid_at}];if(!e.paid_at)return steps;steps.push({icon:(0,T.jsx)(y,{className:`h-5 w-5`}),title:`Em preparação`,desc:`Pedido em preparação.`,done:[`em_preparacao`,`enviado`,`entregue`].includes(e.fulfillment_status)});if([`enviado`,`entregue`].includes(e.fulfillment_status))steps.push({icon:(0,T.jsx)(h,{className:`h-5 w-5`}),title:`Enviado`,desc:`Encomenda enviada.`,done:!0});if(e.fulfillment_status===`entregue`)steps.push({icon:(0,T.jsx)(l,{className:`h-5 w-5`}),title:`Entregue`,desc:`Entrega concluída.`,done:!0});return steps}';
+tracking=tracking.slice(0,timelineStart)+timeline+tracking.slice(timelineEnd);
+tracking=tracking.replace('Pedidos são despachados no dia seguinte à compra, às 9h32.','Acompanhe o status informado pela loja.').replace('Confira o código, CPF ou telefone e tente novamente.','Confira o código do pedido ou de rastreio e tente novamente.').replace('placeholder:`Buscar meu pedido`','placeholder:`Código do pedido ou de rastreio`');
+await fs.writeFile(trackingBundle,tracking);
 console.log('Arquivos estáticos prontos em public/');
