@@ -11,7 +11,7 @@ await fs.mkdir(out, { recursive: true });
 for (const name of ['assets', 'media', 'produto', 'checkout', 'pagamento-pix', 'politicas', 'rastreio']) {
   await fs.cp(path.join(root, name), path.join(out, name), { recursive: true });
 }
-for (const name of ['favicon.png', 'apple-touch-icon.png', 'site.webmanifest', 'checkout-notice.js', 'checkout-bridge.js', 'pix.js']) {
+for (const name of ['favicon.png', 'apple-touch-icon.png', 'site.webmanifest', 'checkout-notice.js', 'checkout-bridge.js', 'marketing.js', 'pix.js']) {
   await fs.copyFile(path.join(root, name), path.join(out, name));
 }
 
@@ -19,12 +19,19 @@ for (const route of ['produto/autobar', 'checkout', 'politicas', 'rastreio']) {
   const page = path.join(out, route, 'index.html');
   let html = await fs.readFile(page, 'utf8');
   html = html.replace("connect-src 'self'", "connect-src 'self' https://personalizecar.vercel.app");
+  html = html.replace("script-src 'self' 'unsafe-inline'", "script-src 'self' 'unsafe-inline' https://analytics.tiktok.com https://connect.facebook.net https://cdn.utmify.com.br");
+  html = html.replace("connect-src 'self' https://personalizecar.vercel.app", "connect-src 'self' https://personalizecar.vercel.app https://analytics.tiktok.com https://*.tiktok.com https://www.facebook.com https://cdn.utmify.com.br");
   html = html.replace('<strong class="text-neutral-600">5% de cashback</strong> para a próxima compra','<strong class="text-neutral-600">Pagamento via Pix</strong> com confirmação automática');
   html = html.replace('Diversão, conforto e segurança.','Praticidade para sua viagem.').replace('Receba ofertas exclusivas, novidades e dicas para a criançada assinando nossa newsletter.','Receba novidades e ofertas exclusivas da Central Ideal.');
   html = html.replace('Brincar é coisa séria. Na <strong class="font-bold text-white">Central Ideal</strong>, criamos produtos que unem <strong class="font-bold text-white">segurança</strong>, qualidade e aquela dose de diversão que faz cada dia virar memória de infância.','Na <strong class="font-bold text-white">Central Ideal</strong>, criamos produtos práticos para acompanhar seus momentos na estrada.');
   html = html.replace(/<div class="mt-8 flex flex-wrap items-center gap-2"><img[^]*?<\/div>/,'<div class="mt-8 flex flex-wrap items-center gap-2"><span class="rounded bg-white px-4 py-2 text-sm font-bold text-neutral-800">Pix</span></div>');
-  html = html.replace('</head>', '<script src="/checkout-bridge.js"></script><script defer src="/checkout-notice.js"></script></head>');
+  html = html.replace('</head>', '<script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script><script src="/checkout-bridge.js"></script><script defer src="/marketing.js"></script><script defer src="/checkout-notice.js"></script></head>');
   await fs.writeFile(page, html);
+}
+{
+  const page=path.join(out,'pagamento-pix','index.html');let html=await fs.readFile(page,'utf8');
+  html=html.replace("script-src 'self'", "script-src 'self' https://analytics.tiktok.com https://connect.facebook.net https://cdn.utmify.com.br").replace("img-src 'self' data:","img-src 'self' data: https:").replace("connect-src 'self' https://personalizecar.vercel.app", "connect-src 'self' https://personalizecar.vercel.app https://analytics.tiktok.com https://*.tiktok.com https://www.facebook.com https://cdn.utmify.com.br");
+  html=html.replace('</head>','<script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script><script defer src="/marketing.js"></script></head>');await fs.writeFile(page,html);
 }
 const productBundle=path.join(out,'assets','produto._slug-BeuPeFaD.js');
 let product=await fs.readFile(productBundle,'utf8');
