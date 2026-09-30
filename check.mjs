@@ -23,5 +23,5 @@ for (const [name, marker] of pages) {
 }
 const built=await fs.readFile(path.join(root,'public','produto','autobar','index.html'),'utf8');
 const marketing=await fs.readFile(path.join(root,'public','marketing.js'),'utf8');
-if(!built.includes('/marketing.js')||!built.includes('cdn.utmify.com.br/scripts/utms/latest.js')||!marketing.includes('DAT8TNJC77U5PB60DTT0')||!marketing.includes('969483765461099')||!marketing.includes('6aba22903679022ae64e1ad7'))throw Error('Pixels da GelaCar não estão presentes no build');
+if(!built.includes('/marketing.js')||!built.includes('cdn.utmify.com.br/scripts/utms/latest.js')||!marketing.includes('DAT8TNJC77U5PB60DTT0')||!marketing.includes('969483765461099')||marketing.includes('cdn.utmify.com.br/scripts/pixel/pixel.js'))throw Error('Pixels da GelaCar não estão presentes no build');
 console.log(`OK: ${pages.length} páginas, ${checked} referências locais e pixels compartilhados`);
