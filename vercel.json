@@ -3,8 +3,10 @@
   "framework": null,
   "buildCommand": "node build.mjs",
   "outputDirectory": "public",
+  "redirects": [
+    { "source": "/", "destination": "/produto/autobar", "permanent": false }
+  ],
   "rewrites": [
-    { "source": "/", "destination": "/produto/autobar/index.html" },
     { "source": "/produto/autobar", "destination": "/produto/autobar/index.html" },
     { "source": "/checkout", "destination": "/checkout/index.html" },
     { "source": "/politicas", "destination": "/politicas/index.html" },

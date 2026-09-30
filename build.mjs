@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const out = path.join(root, 'public');
+if (!out.startsWith(root + path.sep)) throw new Error('Diretório de saída inválido');
 await fs.rm(out, { recursive: true, force: true });
 await fs.mkdir(out, { recursive: true });
 

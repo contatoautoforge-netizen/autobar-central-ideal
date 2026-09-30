@@ -13,7 +13,6 @@ const types = {
   '.woff': 'font/woff', '.woff2': 'font/woff2', '.mp4': 'video/mp4',
 };
 const routes = new Map([
-  ['/', '/produto/autobar/index.html'],
   ['/produto/autobar', '/produto/autobar/index.html'],
   ['/checkout', '/checkout/index.html'],
   ['/politicas', '/politicas/index.html'],
@@ -23,6 +22,11 @@ const routes = new Map([
 http.createServer(async (request, response) => {
   try {
     let pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
+    if (pathname === '/') {
+      response.writeHead(302, { Location: '/produto/autobar' });
+      response.end();
+      return;
+    }
     pathname = routes.get(pathname) || pathname;
     const target = path.resolve(root, '.' + pathname);
     if (!target.startsWith(root + path.sep)) {
