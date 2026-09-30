@@ -7,7 +7,7 @@
   window.fbq('init',metaPixel);window.fbq('trackSingle',metaPixel,'PageView');
   const props=amount=>({content_id:product,content_ids:[product],content_type:'product',currency:'BRL',...(Number.isFinite(amount)&&amount>0?{value:amount}:{}),product_name:'AutoBar',store_name:'AutoBar'});
   function track(event,id,amount){if(seen(event+'_'+id))return;const eventId=event+'_'+id,data=props(amount);try{window.ttq.track(event,data,{event_id:eventId})}catch{}try{window.fbq('trackSingle',metaPixel,event,data,{eventID:eventId})}catch{}mark(eventId)}
-  const session=()=>sessionStorage.getItem('autobar_session')||crypto.randomUUID();
+  const session=()=>{let id=sessionStorage.getItem('autobar_session');if(!id){id=crypto.randomUUID();sessionStorage.setItem('autobar_session',id)}return id};
   function route(){if(location.pathname==='/produto/autobar')track('ViewContent',session(),184.10);if(location.pathname==='/checkout')track('InitiateCheckout',session())}
   window.autobarMarketing={track,paymentStarted:amount=>track('AddPaymentInfo',session(),Number(amount)/100),purchase:(orderId,amount)=>{if(/^[0-9a-f-]{36}$/i.test(orderId))track('Purchase',orderId,Number(amount)/100)}};
   document.addEventListener('click',event=>{const button=event.target.closest('button');if(button&&/adicionar.{0,20}carrinho|comprar agora/i.test(button.textContent||'')&&location.pathname==='/produto/autobar')track('AddToCart',session())},{capture:true});
