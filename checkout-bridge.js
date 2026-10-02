@@ -8,8 +8,8 @@
     if(Array.isArray(items)&&items.some(item=>item.id==='cc63486e-33dc-445a-acdf-8f93cdac3cf8'&&item.slug==='autobar')){
       localStorage.setItem(key,JSON.stringify(items.map(item=>{
         if(item.id!=='cc63486e-33dc-445a-acdf-8f93cdac3cf8'||item.slug!=='autobar')return item;
-        const kitQty=item.kitQty>=2?2:1;
-        return {...item,price:kitQty===2?11900:7900,...(item.kitQty?{kitQty,basePrice:7900,units:Array.isArray(item.units)?item.units.slice(0,kitQty):item.units}:{})};
+        const kitQty=item.kitQty>=2||/\bkit\s*2\b|\b2\s*unidades\b/i.test(item.size||'')?2:1;
+        return {...item,price:kitQty===2?11900:7900,kitQty,basePrice:7900,...(Array.isArray(item.units)?{units:item.units.slice(0,kitQty)}:{})};
       })));
     }
   }catch{}
@@ -39,5 +39,6 @@
     if(url==='/api/public/check-payment-status')return originalFetch(`${api}?action=status`,init).then(async response=>{if(response.ok){const copy=response.clone(),result=await copy.json().catch(()=>({}));if(result.status==='PAID'){sessionStorage.removeItem('autobar_order_intent');window.autobarMarketing?.purchase(result.orderId,result.amount)}}return response});
     return originalFetch(input,init);
   };
+  document.addEventListener('click',event=>{const link=event.target.closest?.('a[href]');if(!link||link.target||event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;const url=new URL(link.href,location.href);if(url.origin===location.origin&&url.pathname==='/checkout'){event.preventDefault();location.assign(url.href)}},true);
   addEventListener('popstate',visit);addEventListener('pageshow',visit);setInterval(()=>{if(!document.hidden)void visit()},30000);void visit();
 })();

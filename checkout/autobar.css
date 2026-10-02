@@ -1,0 +1,10 @@
+:root{--accent:206 9% 15%}
+.fields input:focus{outline-color:#303437}
+a{color:#303437}
+.checkout-review-card img{object-position:center}
+.checkout-status{font-size:13px;color:#555}
+.payment-unavailable[hidden],#pix-panel[hidden],#pix-result[hidden],#pix-qr-section[hidden],#pix-stock-notice[hidden]{display:none!important}
+.summary-item-main small{font-style:normal}
+.summary-item .stock-urgency{display:none}
+.pix-status-warning{color:#8a5b14}
+@media(max-width:800px){.desktop-summary{display:none}}

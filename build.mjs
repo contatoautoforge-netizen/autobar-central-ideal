@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {renderAutobarCheckout} from './checkout/render.mjs';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const out = path.join(root, 'public');
@@ -14,8 +15,11 @@ for (const name of ['assets', 'media', 'produto', 'checkout', 'pagamento-pix', '
 for (const name of ['favicon.png', 'apple-touch-icon.png', 'site.webmanifest', 'checkout-notice.js', 'checkout-bridge.js', 'marketing.js', 'pix.js']) {
   await fs.copyFile(path.join(root, name), path.join(out, name));
 }
+await fs.writeFile(path.join(out,'checkout','index.html'),await renderAutobarCheckout(root));
+await fs.rm(path.join(out,'checkout','gelacar-template.html'));
+await fs.rm(path.join(out,'checkout','render.mjs'));
 
-for (const route of ['produto/autobar', 'checkout', 'politicas', 'rastreio']) {
+for (const route of ['produto/autobar', 'politicas', 'rastreio']) {
   const page = path.join(out, route, 'index.html');
   let html = await fs.readFile(page, 'utf8');
   html = html.replace("connect-src 'self'", "connect-src 'self' https://personalizecar.vercel.app");
@@ -53,6 +57,8 @@ product=product.replace('Pix e cartão em até 12x.','Pagamento via Pix.');
 const autobarTier='if(n&&n.offer_mode===`kit2`){let e=n.price,t=n.compare_at_price&&n.compare_at_price>e?n.compare_at_price:Math.round(e*1.63),r=n.name.split(` `)[0];return[{id:1,quantity:1,price:e,compareAtPrice:t,label:`1 ${r}`},{id:2,quantity:2,price:Math.round(e*1.8),compareAtPrice:t*2,label:`2 ${r}`,badge:`Melhor Preço`}]}';
 if(!product.includes(autobarTier))throw Error('Cálculo da segunda oferta mudou');
 product=product.replace(autobarTier,autobarTier.replace('price:Math.round(e*1.8)','price:n.slug===`autobar`?11900:Math.round(e*1.8)'));
+if(!product.includes('We(`/checkout`);return'))throw Error('Navegação do produto ao checkout mudou');
+product=product.replace('We(`/checkout`);return','location.assign(`/checkout`);return');
 await fs.writeFile(productBundle,product);
 const checkoutBundle=path.join(out,'assets','checkout-C2qFdlwJ.js');
 let checkout=await fs.readFile(checkoutBundle,'utf8');
