@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 const root = path.dirname(fileURLToPath(import.meta.url));
 const pages = [
   ['produto/autobar/index.html', 'AutoBar™'],
+  ['produto/agrobar/index.html', 'AgroBar™'],
   ['checkout/index.html', 'Checkout seguro'],
   ['pagamento-pix/index.html', 'Pagamento Pix'],
   ['politicas/index.html', 'Política'],
@@ -24,6 +25,10 @@ for (const [name, marker] of pages) {
 const built=await fs.readFile(path.join(root,'public','produto','autobar','index.html'),'utf8');
 if(!built.includes('GelaBar™')||built.includes('AutoBar™')||!built.includes('/brand/gelabar-logo.svg'))throw Error('Marca GelaBar ausente do produto');
 if(!built.includes('rel="canonical" href="https://gelabar.vercel.app/produto/autobar"')||!built.includes('property="og:url" content="https://gelabar.vercel.app/produto/autobar"')||!built.includes('"price":"79.00"'))throw Error('Domínio ou preço GelaBar ausente dos metadados do produto');
+if(!built.includes('/variant-switch.js'))throw Error('Seletor de variações ausente do GelaBar');
+const agrobar=await fs.readFile(path.join(root,'public','produto','agrobar','index.html'),'utf8');
+if(!agrobar.includes('671 avaliações')||!agrobar.includes('R$ 79,00')||!agrobar.includes('R$ 119,00')||!agrobar.includes('gelabar.vercel.app/produto/agrobar'))throw Error('Página AgroBar incompleta');
+for(const name of ['agrobar-1.webp','agrobar-2.webp','agrobar-3.webp','agrobar-4.webp','agrobar-review-1.webp','agrobar-review-2.webp','agrobar-review-3.webp','agrobar-review-4.webp'])if(!(await fs.stat(path.join(root,'public','media',name)).catch(()=>null))?.size)throw Error(`Mídia AgroBar ausente: ${name}`);
 const builtCheckout=await fs.readFile(path.join(root,'public','checkout','index.html'),'utf8');
 const checkoutLogic=await fs.readFile(path.join(root,'public','checkout','autobar-checkout.js'),'utf8');
 if(builtCheckout.includes('AutoBar')||!builtCheckout.includes('GelaBar')||!checkoutLogic.includes('GelaBar™')||!checkoutLogic.includes('gelabar-thumb.jpg'))throw Error('Marca GelaBar ausente do checkout');

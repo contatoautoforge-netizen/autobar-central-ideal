@@ -12,7 +12,7 @@ await fs.mkdir(out, { recursive: true });
 for (const name of ['assets', 'media', 'brand', 'produto', 'checkout', 'pagamento-pix', 'politicas', 'rastreio']) {
   await fs.cp(path.join(root, name), path.join(out, name), { recursive: true });
 }
-for (const name of ['favicon.png', 'apple-touch-icon.png', 'site.webmanifest', 'checkout-notice.js', 'checkout-bridge.js', 'marketing.js', 'pix.js']) {
+for (const name of ['favicon.png', 'apple-touch-icon.png', 'site.webmanifest', 'checkout-notice.js', 'checkout-bridge.js', 'marketing.js', 'pix.js', 'variant-switch.js', 'variant-switch.css']) {
   await fs.copyFile(path.join(root, name), path.join(out, name));
 }
 await fs.writeFile(path.join(out,'checkout','index.html'),await renderAutobarCheckout(root));
@@ -43,7 +43,7 @@ for (const route of ['produto/autobar', 'politicas', 'rastreio']) {
       html=html.replaceAll(before,after);
     }
   }
-  html = html.replace('</head>', '<style>div.mt-8.flex.flex-wrap.items-center.gap-2:has(> img[alt="Visa"]) > img { display:none!important }div.mt-8.flex.flex-wrap.items-center.gap-2:has(> img[alt="Visa"])::after { content:"Pix";display:inline-block;background:#fff;color:#262626;border-radius:4px;padding:6px 18px;font-weight:700 }</style><script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script><script src="/checkout-bridge.js"></script><script defer src="/marketing.js"></script><script defer src="/checkout-notice.js"></script></head>');
+  html = html.replace('</head>', '<style>div.mt-8.flex.flex-wrap.items-center.gap-2:has(> img[alt="Visa"]) > img { display:none!important }div.mt-8.flex.flex-wrap.items-center.gap-2:has(> img[alt="Visa"])::after { content:"Pix";display:inline-block;background:#fff;color:#262626;border-radius:4px;padding:6px 18px;font-weight:700 }</style><script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script><script src="/checkout-bridge.js"></script><script defer src="/marketing.js"></script><script defer src="/checkout-notice.js"></script>'+(route==='produto/autobar'?'<link rel="stylesheet" href="/variant-switch.css"><script defer src="/variant-switch.js"></script>':'')+'</head>');
   await fs.writeFile(page, html);
 }
 {
@@ -96,15 +96,15 @@ const cartBundle=path.join(out,'assets','index-DCpKv0un.js');
 let cart=await fs.readFile(cartBundle,'utf8');
 for(const [before,after] of [
   ['function _p(e,t){return t>=3?Math.round(e*2.5):t===2?Math.round(e*1.8):e}','function _p(e,t){return e===7900&&t===2?11900:t>=3?Math.round(e*2.5):t===2?Math.round(e*1.8):e}'],
-  ['let r=Number(t.price)||e.price','let r=e.slug===`autobar`?7900:Number(t.price)||e.price'],
-  ['Math.min(3,Math.max(1,r))','Math.min(n.slug===`autobar`?2:3,Math.max(1,r))']
+  ['let r=Number(t.price)||e.price','let r=[`autobar`,`agrobar`].includes(e.slug)?7900:Number(t.price)||e.price'],
+  ['Math.min(3,Math.max(1,r))','Math.min([`autobar`,`agrobar`].includes(n.slug)?2:3,Math.max(1,r))']
 ]){
   if(!cart.includes(before))throw Error('Cálculo do carrinho mudou');
   cart=cart.replace(before,after);
 }
 const cartThumb='let n=t.checkout_image_url||null';
 if(!cart.includes(cartThumb))throw Error('Miniatura do carrinho mudou');
-cart=cart.replace(cartThumb,'let n=e.slug===`autobar`?`/media/gelabar-thumb.jpg`:t.checkout_image_url||null');
+cart=cart.replace(cartThumb,'let n=e.slug===`autobar`?`/media/gelabar-thumb.jpg`:e.slug===`agrobar`?`/media/agrobar-1.webp`:t.checkout_image_url||null');
 await fs.writeFile(cartBundle,cart);
 const footerBundle=path.join(out,'assets','Footer-CXUy4S6e.js');
 let footer=await fs.readFile(footerBundle,'utf8');

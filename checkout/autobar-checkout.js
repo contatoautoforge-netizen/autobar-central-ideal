@@ -3,6 +3,7 @@ import {digits,formatCpf,formatCnpj,formatPhone,validCpf,validCnpj,validPhone,va
 
 const api='https://personalizecar.vercel.app/api/autobar';
 const productId='cc63486e-33dc-445a-acdf-8f93cdac3cf8';
+const agrobarProductId='c4a64980-0d6e-4f27-a79f-db44118b2d5b';
 const cartKey='store:cart',intentKey='autobar-inline-intent-v1',orderKey='autobar-inline-order-v1';
 const $=id=>document.getElementById(id);
 const money=cents=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(cents/100);
@@ -12,14 +13,17 @@ let personType='fisica',pixEnabled=false,paymentPoll=null,renderedPixCode='',cre
 function readCart(){
   let parsed;try{parsed=JSON.parse(localStorage.getItem(cartKey)||'[]')}catch{return []}
   if(!Array.isArray(parsed))return [];
-  return parsed.filter(item=>item?.id===productId&&item.slug==='autobar'&&Number.isInteger(item.quantity)&&item.quantity>0)
+  return parsed.filter(item=>(item?.id===productId&&item.slug==='autobar'||item?.id===agrobarProductId&&item.slug==='agrobar')&&Number.isInteger(item.quantity)&&item.quantity>0)
     .map(item=>{const kitQty=item.kitQty>=2||/\bkit\s*2\b|\b2\s*unidades\b/i.test(item.size||'')?2:1;return {...item,price:kitQty===2?11900:7900,basePrice:7900,kitQty}});
 }
 let items=readCart();
+const gelaReviews=[['Rafael Cardoso','Quando chegou fiquei impressionado com os detalhes. Mandei as fotos do meu carro e fizeram...','/media/3a3b3852642727dc.webp'],['Gustavo Alves','Ficou top demais. A BMW ficou muito parecida com a minha e ainda coloquei o posto Shell.','/media/9e49a7682f7a3963.webp'],['Mateus Ribeiro','Tenho um Gol e quando vi que dava para fazer com o meu carro já quis na hora.','/media/557355cd1db0b707.webp'],['Gustavo Sardanha','Peguei com o Clio porque foi meu primeiro carro e queria guardar essa lembrança.','/media/ced3f4d9576754df.webp']];
+const agroReviews=[['Rafael M','Rapaz, ficou bonito demais kkk. Coloquei na área aqui de casa e todo mundo que chega quer ...','/media/agrobar-review-1.webp'],['Gustavo R','Curti demais os detalhes da colheitadeira. Ao vivo ficou ainda mais daora e com meu nome f...','/media/agrobar-review-2.webp'],['Marcelo A.','Comprei pra deixar no meu espaço do churrasco e combinou demais. Quem gosta de agro vai en...','/media/agrobar-review-3.webp'],['Rodrigo S','Já estreou no churrasco aqui de casa kkk. A turma ficou doida quando viu servindo sozinho....','/media/agrobar-review-4.webp']];
+function renderVariantReviews(){const hasAgro=items.some(item=>item.slug==='agrobar'),hasGela=items.some(item=>item.slug==='autobar'),reviews=hasAgro?(hasGela?[...gelaReviews.slice(0,2),...agroReviews.slice(0,2)]:agroReviews):gelaReviews;document.querySelectorAll('.checkout-review-set').forEach(set=>[...set.querySelectorAll('.checkout-review-card')].forEach((card,index)=>{const [name,quote,image]=reviews[index];card.querySelector('img').src=image;card.querySelector('strong').textContent=name;card.querySelector('p').textContent=quote}))}
 const subtotal=()=>items.reduce((sum,item)=>sum+item.price*item.quantity,0);
 const selectedShipping=()=>document.querySelector('input[name="shipping-method"]:checked')?.value==='sedex'?{method:'sedex',cents:2490,label:'SEDEX'}:{method:'pac',cents:0,label:'PAC'};
 const total=()=>subtotal()+selectedShipping().cents;
-const fingerprint=()=>JSON.stringify([items.map(item=>[item.id,item.price,item.quantity,item.kitQty,item.size,item.customization?.photoPath]),selectedShipping().method]);
+const fingerprint=()=>JSON.stringify([items.map(item=>[item.id,item.slug,item.price,item.quantity,item.kitQty,item.size,item.customization?.photoPath,item.customization?.name]),selectedShipping().method]);
 const tracking=()=>{try{return JSON.parse(sessionStorage.getItem('autobar_attribution')||'{}')}catch{return {}}};
 const sessionId=()=>{let id=sessionStorage.getItem('autobar_session');if(!id){id=crypto.randomUUID();sessionStorage.setItem('autobar_session',id)}return id};
 const paymentRequest=async(action,body)=>{
@@ -37,9 +41,10 @@ function renderSummary(target){
   }
   for(const [index,item] of items.entries()){
     const row=document.createElement('div');row.className='summary-item';
-    const photo=document.createElement('img');photo.src='/media/gelabar-thumb.jpg';photo.alt='GelaBar';
+    const agrobar=item.slug==='agrobar';
+    const photo=document.createElement('img');photo.src=agrobar?'/media/agrobar-1.webp':'/media/gelabar-thumb.jpg';photo.alt=agrobar?'AgroBar':'GelaBar';
     const main=document.createElement('div');main.className='summary-item-main';
-    const title=document.createElement('strong');title.textContent=item.kitQty===2?'2 GelaBars™ personalizados':'GelaBar™ personalizado';
+    const title=document.createElement('strong');title.textContent=agrobar?(item.kitQty===2?'2 AgroBars™ personalizados':'AgroBar™ personalizado'):(item.kitQty===2?'2 GelaBars™ personalizados':'GelaBar™ personalizado');
     const detail=document.createElement('small');const variant=String(item.size||'').replace(/^Kit\s*2\s*unidades\s*[•·-]?\s*/i,'').trim();detail.textContent=[item.kitQty===2?'Kit 2 unidades':'1 unidade',variant|| (item.customization?.station?`Posto: ${item.customization.station}`:'')].filter(Boolean).join(' · ');
     const price=document.createElement('div');price.className='summary-price';const amount=document.createElement('b');amount.textContent=money(item.price*item.quantity);price.append(amount);
     main.append(title,detail,price);
@@ -69,6 +74,7 @@ function renderAll(){
   document.querySelector('.coupon').hidden=!items.length;
   $('pix-total').textContent=money(total());
   if(!items.length){$('delivery-step').hidden=true;$('payment-step').hidden=true;}
+  renderVariantReviews();
 }
 function invalidatePayment(message=''){
   if(paymentPoll){clearInterval(paymentPoll);paymentPoll=null}
@@ -163,7 +169,7 @@ $('pix-create').addEventListener('click',async()=>{
   const shipping=selectedShipping();const stamp=JSON.stringify([fingerprint(),personType,$('customer-name').value,$('customer-email').value,$('customer-document').value,$('customer-phone').value,address]);
   let intent;try{intent=JSON.parse(sessionStorage.getItem(intentKey)||'null')}catch{}
   if(!intent||intent.stamp!==stamp){intent={stamp,key:crypto.randomUUID()};sessionStorage.setItem(intentKey,JSON.stringify(intent))}
-  const body={requestKey:intent.key,paymentMethod:'PIX',amount:total(),shippingCents:shipping.cents,shippingMethod:shipping.method,discountCents:0,couponCode:null,giftWrapCents:0,customer:{name:$('customer-name').value.trim(),email:$('customer-email').value.trim(),phone:$('customer-phone').value,document:$('customer-document').value,documentType:personType==='fisica'?'CPF':'CNPJ'},address,items:items.map(item=>({id:productId,slug:'autobar',title:item.kitQty===2?'2x GelaBar™':'GelaBar™',unitPrice:item.price,quantity:item.quantity,variant:item.size||'',customization:{station:item.customization?.station||'',photoPath:item.customization?.photoPath||''}})),trackingParameters:tracking()};
+  const body={requestKey:intent.key,paymentMethod:'PIX',amount:total(),shippingCents:shipping.cents,shippingMethod:shipping.method,discountCents:0,couponCode:null,giftWrapCents:0,customer:{name:$('customer-name').value.trim(),email:$('customer-email').value.trim(),phone:$('customer-phone').value,document:$('customer-document').value,documentType:personType==='fisica'?'CPF':'CNPJ'},address,items:items.map(item=>({id:item.id,slug:item.slug,title:item.kitQty===2?`2x ${item.slug==='agrobar'?'AgroBar':'GelaBar'}™`:`${item.slug==='agrobar'?'AgroBar':'GelaBar'}™`,unitPrice:item.price,quantity:item.quantity,variant:item.size||'',customization:{station:item.customization?.station||'',photoPath:item.customization?.photoPath||'',name:item.customization?.name||''}})),trackingParameters:tracking()};
   creating=true;$('pix-create').disabled=true;$('pix-status').textContent='Gerando cobrança Pix…';
   try{const order=await paymentRequest('create',body);sessionStorage.setItem(orderKey,JSON.stringify({...order,fingerprint:fingerprint()}));showPayment(order)}
   catch(error){$('pix-status').textContent=errText[error.message]||'Não foi possível confirmar a cobrança. Aguarde e tente novamente com este pedido.'}

@@ -8,6 +8,7 @@
   ],
   "rewrites": [
     { "source": "/produto/autobar", "destination": "/produto/autobar/index.html" },
+    { "source": "/produto/agrobar", "destination": "/produto/agrobar/index.html" },
     { "source": "/checkout", "destination": "/checkout/index.html" },
     { "source": "/pagamento-pix", "destination": "/pagamento-pix/index.html" },
     { "source": "/politicas", "destination": "/politicas/index.html" },
