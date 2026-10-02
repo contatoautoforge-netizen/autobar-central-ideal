@@ -86,6 +86,7 @@ function changeQuantity(index,change){
 function step(number){
   for(const [index,id] of ['identity-step','delivery-step','payment-step'].entries())$(id).hidden=index+1!==number;
   document.querySelectorAll('.step').forEach(element=>{const index=Number(element.dataset.step);element.classList.toggle('current',index===number);element.classList.toggle('done',index<number)});
+  window.autobarCheckoutStep=number;void window.autobarRecordVisit?.();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function showError(id,input,message){const notice=$(id);notice.textContent=message;notice.hidden=!message;if(input){input.setAttribute('aria-invalid','true');input.focus()}}
