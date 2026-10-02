@@ -1,5 +1,5 @@
 import {drawPixQr} from './pix-qr.js';
-import {digits,formatCpf,formatCnpj,formatPhone,validCpf,validCnpj,validPhone,validCep,validName,validEmail} from './validation.js';
+import {digits,nationalPhone,formatCpf,formatCnpj,formatPhone,validCpf,validCnpj,validPhone,validCep,validName,validEmail} from './validation.js';
 
 const api='https://personalizecar.vercel.app/api/autobar';
 const productId='cc63486e-33dc-445a-acdf-8f93cdac3cf8';
@@ -101,8 +101,23 @@ function identityChecks(){
   return [[name,personType==='fisica'?validName(name.value):name.value.trim().length>=3,'Informe o nome completo ou a razão social.'],[email,validEmail(email.value),'Informe um e-mail válido.'],[document,personType==='fisica'?validCpf(document.value):validCnpj(document.value),`Informe um ${personType==='fisica'?'CPF':'CNPJ'} válido.`],[phone,validPhone(phone.value),'Informe um celular válido com DDD e 9 dígitos.']];
 }
 function validateIdentity(){const checks=identityChecks();checks.forEach(([input])=>input.removeAttribute('aria-invalid'));const failed=checks.find(([,valid])=>!valid);showError('identity-error',failed?.[0],failed?.[2]||'');return !failed}
-function maskInput(input,format){input.addEventListener('input',()=>{const before=digits(input.value.slice(0,input.selectionStart)).length;input.value=format(input.value);let position=0,count=0;for(let i=0;i<input.value.length;i++){if(/\d/.test(input.value[i]))count++;if(count===before){position=i+1;break}}input.setSelectionRange(before?position:0,before?position:0)})}
-maskInput($('customer-document'),value=>personType==='fisica'?formatCpf(value):formatCnpj(value));maskInput($('customer-phone'),formatPhone);
+function maskInput(input,format,maxDigits){
+  let previous=input.value,previousCaret=input.selectionStart||0;
+  input.addEventListener('beforeinput',()=>{previous=input.value;previousCaret=input.selectionStart||0});
+  input.addEventListener('input',()=>{
+    const before=digits(input.value.slice(0,input.selectionStart)).length;
+    if(maxDigits&&nationalPhone(input.value).length>maxDigits){
+      input.value=previous;input.setSelectionRange(previousCaret,previousCaret);return;
+    }
+    input.value=format(input.value);
+    const target=Math.min(before,digits(input.value).length);
+    let position=target?input.value.length:0,count=0;
+    for(let i=0;i<input.value.length&&target;i++)if(/\d/.test(input.value[i])&&++count===target){position=i+1;break}
+    input.setSelectionRange(position,position);
+    previous=input.value;previousCaret=position;
+  });
+}
+maskInput($('customer-document'),value=>personType==='fisica'?formatCpf(value):formatCnpj(value));maskInput($('customer-phone'),formatPhone,11);
 for(const type of ['fisica','juridica'])$('person-'+type).addEventListener('click',()=>{
   personType=type;for(const choice of ['fisica','juridica']){const button=$('person-'+choice);button.classList.toggle('active',choice===type);button.setAttribute('aria-pressed',String(choice===type))}
   $('name-label').textContent=type==='fisica'?'Nome completo':'Razão social';$('document-label').textContent=type==='fisica'?'CPF':'CNPJ';$('customer-document').placeholder=type==='fisica'?'000.000.000-00':'00.000.000/0000-00';$('customer-document').value='';$('document-hint').textContent=type==='fisica'?'Confira os 11 dígitos do CPF.':'Confira os 14 dígitos do CNPJ.';showError('identity-error',null,'');
