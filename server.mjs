@@ -41,4 +41,4 @@ http.createServer(async (request, response) => {
     response.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
     response.end('Página não encontrada');
   }
-}).listen(port, '127.0.0.1', () => console.log(`AutoBar local: http://127.0.0.1:${port}`));
+}).listen(port, '127.0.0.1', () => console.log(`GelaBar local: http://127.0.0.1:${port}`));

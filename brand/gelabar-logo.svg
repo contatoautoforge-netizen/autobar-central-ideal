@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 200" role="img" aria-labelledby="title">
+  <title id="title">GelaBar</title>
+  <g font-family="Arial Black,Arial,sans-serif" font-size="136" font-style="italic" font-weight="900" letter-spacing="-7">
+    <text x="10" y="139" fill="#202528">Gela</text>
+    <text x="318" y="139" fill="#f26522">Bar</text>
+  </g>
+  <path d="M318 159h242l-20 11H303z" fill="#f26522"/>
+</svg>

@@ -9,7 +9,7 @@ if (!out.startsWith(root + path.sep)) throw new Error('Diretório de saída inv�
 await fs.rm(out, { recursive: true, force: true });
 await fs.mkdir(out, { recursive: true });
 
-for (const name of ['assets', 'media', 'produto', 'checkout', 'pagamento-pix', 'politicas', 'rastreio']) {
+for (const name of ['assets', 'media', 'brand', 'produto', 'checkout', 'pagamento-pix', 'politicas', 'rastreio']) {
   await fs.cp(path.join(root, name), path.join(out, name), { recursive: true });
 }
 for (const name of ['favicon.png', 'apple-touch-icon.png', 'site.webmanifest', 'checkout-notice.js', 'checkout-bridge.js', 'marketing.js', 'pix.js']) {
@@ -22,6 +22,9 @@ await fs.rm(path.join(out,'checkout','render.mjs'));
 for (const route of ['produto/autobar', 'politicas', 'rastreio']) {
   const page = path.join(out, route, 'index.html');
   let html = await fs.readFile(page, 'utf8');
+  html=html.replaceAll('AutoBar','GelaBar').replaceAll('/media/1741b8ef711bc4a8.png','/brand/gelabar-logo.svg').replaceAll('/media/2cee687217d56fde.png','/brand/gelabar-logo.svg').replaceAll('/media/c18a77036ddbdcd3.png','/brand/gelabar-logo-white.svg');
+  html=html.replaceAll('/media/fd5d694cc3f25a88.webp','/media/gelabar-gallery-1.jpg').replaceAll('/media/66165014bfa0c775.webp','/media/gelabar-gallery-2.jpg').replaceAll('/media/a1e9bde41cf61aa9.webp','/media/gelabar-thumb.jpg').replaceAll('aria-label="Central Ideal — Início"','aria-label="GelaBar — Início"').replaceAll('alt="Central Ideal"','alt="GelaBar"');
+  html=html.replaceAll('href="/favicon.png" type="image/png" sizes="64x64"','href="/brand/gelabar-favicon.png" type="image/png" sizes="64x64"').replaceAll('href="/apple-touch-icon.png"','href="/brand/gelabar-touch.png"');
   html = html.replace("connect-src 'self'", "connect-src 'self' https://personalizecar.vercel.app");
   html = html.replace("script-src 'self' 'unsafe-inline'", "script-src 'self' 'unsafe-inline' https://analytics.tiktok.com https://connect.facebook.net https://cdn.utmify.com.br");
   html = html.replace("connect-src 'self' https://personalizecar.vercel.app", "connect-src 'self' https://personalizecar.vercel.app https://analytics.tiktok.com https://*.tiktok.com https://www.facebook.com https://cdn.utmify.com.br");
@@ -45,7 +48,7 @@ for (const route of ['produto/autobar', 'politicas', 'rastreio']) {
 {
   const page=path.join(out,'pagamento-pix','index.html');let html=await fs.readFile(page,'utf8');
   html=html.replace("script-src 'self'", "script-src 'self' https://analytics.tiktok.com https://connect.facebook.net https://cdn.utmify.com.br").replace("img-src 'self' data:","img-src 'self' data: https:").replace("connect-src 'self' https://personalizecar.vercel.app", "connect-src 'self' https://personalizecar.vercel.app https://analytics.tiktok.com https://*.tiktok.com https://www.facebook.com https://cdn.utmify.com.br");
-  html=html.replace('</head>','<script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script><script defer src="/marketing.js"></script></head>');await fs.writeFile(page,html);
+  html=html.replace('/media/2cee687217d56fde.png','/brand/gelabar-logo.svg').replace('href="/favicon.png"','href="/brand/gelabar-favicon.png"').replace('</head>','<script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script><script defer src="/marketing.js"></script></head>');await fs.writeFile(page,html);
 }
 const productBundle=path.join(out,'assets','produto._slug-BeuPeFaD.js');
 let product=await fs.readFile(productBundle,'utf8');
@@ -59,7 +62,15 @@ if(!product.includes(autobarTier))throw Error('Cálculo da segunda oferta mudou'
 product=product.replace(autobarTier,autobarTier.replace('price:Math.round(e*1.8)','price:n.slug===`autobar`?11900:Math.round(e*1.8)'));
 if(!product.includes('We(`/checkout`);return'))throw Error('Navegação do produto ao checkout mudou');
 product=product.replace('We(`/checkout`);return','location.assign(`/checkout`);return');
+const brandState='i(t)';
+if(product.split(brandState).length!==3)throw Error('Estado do produto mudou');
+product=product.replaceAll(brandState,'i(__gelabarBrand(t))');
+product+='\nfunction __gelabarBrand(value){return value?.slug===`autobar`?JSON.parse(JSON.stringify(value).replaceAll(`AutoBar`,`GelaBar`).replaceAll(`fd5d694cc3f25a88.webp`,`gelabar-gallery-1.jpg`).replaceAll(`66165014bfa0c775.webp`,`gelabar-gallery-2.jpg`).replaceAll(`a1e9bde41cf61aa9.webp`,`gelabar-thumb.jpg`)):value}\n';
 await fs.writeFile(productBundle,product);
+const headerBundle=path.join(out,'assets','Header-yU5vQPS8.js');
+let header=await fs.readFile(headerBundle,'utf8');
+for(const [before,after] of [['o=i.logo,c=n(i.logo_size)','o=`/brand/gelabar-logo.svg`,c=n(i.logo_size)'],['T=v(i)','T=`GelaBar`']]){if(!header.includes(before))throw Error('Cabeçalho mudou');header=header.replace(before,after)}
+await fs.writeFile(headerBundle,header);
 const checkoutBundle=path.join(out,'assets','checkout-C2qFdlwJ.js');
 let checkout=await fs.readFile(checkoutBundle,'utf8');
 const phoneGuard='if(Le===`required`&&!z.trim()){S.error(`Preencha o celular / WhatsApp`);return}';
@@ -90,9 +101,13 @@ for(const [before,after] of [
   if(!cart.includes(before))throw Error('Cálculo do carrinho mudou');
   cart=cart.replace(before,after);
 }
+const cartThumb='let n=t.checkout_image_url||null';
+if(!cart.includes(cartThumb))throw Error('Miniatura do carrinho mudou');
+cart=cart.replace(cartThumb,'let n=e.slug===`autobar`?`/media/gelabar-thumb.jpg`:t.checkout_image_url||null');
 await fs.writeFile(cartBundle,cart);
 const footerBundle=path.join(out,'assets','Footer-CXUy4S6e.js');
 let footer=await fs.readFile(footerBundle,'utf8');
+for(const [before,after] of [['t=e.logo_white||e.logo,i=f(e)','t=`/brand/gelabar-logo-white.svg`,i=`GelaBar`']]){if(!footer.includes(before))throw Error('Logo do rodapé mudou');footer=footer.replace(before,after)}
 for(const [before,after] of [['Diversão, conforto e segurança.','Praticidade para sua viagem.'],['Receba ofertas exclusivas, novidades e dicas para a criançada assinando nossa newsletter.','Receba novidades e ofertas exclusivas da Central Ideal.']]){
   if(!footer.includes(before))throw Error('Texto do rodapé mudou');
   footer=footer.replace(before,after);

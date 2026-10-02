@@ -9,7 +9,7 @@
       localStorage.setItem(key,JSON.stringify(items.map(item=>{
         if(item.id!=='cc63486e-33dc-445a-acdf-8f93cdac3cf8'||item.slug!=='autobar')return item;
         const kitQty=item.kitQty>=2||/\bkit\s*2\b|\b2\s*unidades\b/i.test(item.size||'')?2:1;
-        return {...item,price:kitQty===2?11900:7900,kitQty,basePrice:7900,...(Array.isArray(item.units)?{units:item.units.slice(0,kitQty)}:{})};
+        return {...item,name:String(item.name||'GelaBar™').replaceAll('AutoBar','GelaBar'),price:kitQty===2?11900:7900,kitQty,basePrice:7900,image_url:'/media/gelabar-thumb.jpg',checkout_image_url:'/media/gelabar-thumb.jpg',...(Array.isArray(item.units)?{units:item.units.slice(0,kitQty)}:{})};
       })));
     }
   }catch{}

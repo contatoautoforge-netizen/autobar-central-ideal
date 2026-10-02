@@ -37,9 +37,9 @@ function renderSummary(target){
   }
   for(const [index,item] of items.entries()){
     const row=document.createElement('div');row.className='summary-item';
-    const photo=document.createElement('img');photo.src=item.checkout_image_url||item.image_url||'/media/fa93a4a722715e36.webp';photo.alt='AutoBar';
+    const photo=document.createElement('img');photo.src='/media/gelabar-thumb.jpg';photo.alt='GelaBar';
     const main=document.createElement('div');main.className='summary-item-main';
-    const title=document.createElement('strong');title.textContent=item.kitQty===2?'2 AutoBars™ personalizados':'AutoBar™ personalizado';
+    const title=document.createElement('strong');title.textContent=item.kitQty===2?'2 GelaBars™ personalizados':'GelaBar™ personalizado';
     const detail=document.createElement('small');const variant=String(item.size||'').replace(/^Kit\s*2\s*unidades\s*[•·-]?\s*/i,'').trim();detail.textContent=[item.kitQty===2?'Kit 2 unidades':'1 unidade',variant|| (item.customization?.station?`Posto: ${item.customization.station}`:'')].filter(Boolean).join(' · ');
     const price=document.createElement('div');price.className='summary-price';const amount=document.createElement('b');amount.textContent=money(item.price*item.quantity);price.append(amount);
     main.append(title,detail,price);
@@ -163,7 +163,7 @@ $('pix-create').addEventListener('click',async()=>{
   const shipping=selectedShipping();const stamp=JSON.stringify([fingerprint(),personType,$('customer-name').value,$('customer-email').value,$('customer-document').value,$('customer-phone').value,address]);
   let intent;try{intent=JSON.parse(sessionStorage.getItem(intentKey)||'null')}catch{}
   if(!intent||intent.stamp!==stamp){intent={stamp,key:crypto.randomUUID()};sessionStorage.setItem(intentKey,JSON.stringify(intent))}
-  const body={requestKey:intent.key,paymentMethod:'PIX',amount:total(),shippingCents:shipping.cents,shippingMethod:shipping.method,discountCents:0,couponCode:null,giftWrapCents:0,customer:{name:$('customer-name').value.trim(),email:$('customer-email').value.trim(),phone:$('customer-phone').value,document:$('customer-document').value,documentType:personType==='fisica'?'CPF':'CNPJ'},address,items:items.map(item=>({id:productId,slug:'autobar',title:item.kitQty===2?'2x AutoBar™':'AutoBar™',unitPrice:item.price,quantity:item.quantity,variant:item.size||'',customization:{station:item.customization?.station||'',photoPath:item.customization?.photoPath||''}})),trackingParameters:tracking()};
+  const body={requestKey:intent.key,paymentMethod:'PIX',amount:total(),shippingCents:shipping.cents,shippingMethod:shipping.method,discountCents:0,couponCode:null,giftWrapCents:0,customer:{name:$('customer-name').value.trim(),email:$('customer-email').value.trim(),phone:$('customer-phone').value,document:$('customer-document').value,documentType:personType==='fisica'?'CPF':'CNPJ'},address,items:items.map(item=>({id:productId,slug:'autobar',title:item.kitQty===2?'2x GelaBar™':'GelaBar™',unitPrice:item.price,quantity:item.quantity,variant:item.size||'',customization:{station:item.customization?.station||'',photoPath:item.customization?.photoPath||''}})),trackingParameters:tracking()};
   creating=true;$('pix-create').disabled=true;$('pix-status').textContent='Gerando cobrança Pix…';
   try{const order=await paymentRequest('create',body);sessionStorage.setItem(orderKey,JSON.stringify({...order,fingerprint:fingerprint()}));showPayment(order)}
   catch(error){$('pix-status').textContent=errText[error.message]||'Não foi possível confirmar a cobrança. Aguarde e tente novamente com este pedido.'}

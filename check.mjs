@@ -22,6 +22,11 @@ for (const [name, marker] of pages) {
   }
 }
 const built=await fs.readFile(path.join(root,'public','produto','autobar','index.html'),'utf8');
+if(!built.includes('GelaBar™')||built.includes('AutoBar™')||!built.includes('/brand/gelabar-logo.svg'))throw Error('Marca GelaBar ausente do produto');
+const builtCheckout=await fs.readFile(path.join(root,'public','checkout','index.html'),'utf8');
+const checkoutLogic=await fs.readFile(path.join(root,'public','checkout','autobar-checkout.js'),'utf8');
+if(builtCheckout.includes('AutoBar')||!builtCheckout.includes('GelaBar')||!checkoutLogic.includes('GelaBar™')||!checkoutLogic.includes('gelabar-thumb.jpg'))throw Error('Marca GelaBar ausente do checkout');
+for(const name of ['gelabar-logo.svg','gelabar-logo-white.svg','gelabar-favicon.png','gelabar-touch.png','gelabar-192.png','gelabar-512.png'])if(!(await fs.stat(path.join(root,'public','brand',name)).catch(()=>null))?.size)throw Error(`Logo ausente: ${name}`);
 const marketing=await fs.readFile(path.join(root,'public','marketing.js'),'utf8');
 if(!built.includes('/marketing.js')||!built.includes('cdn.utmify.com.br/scripts/utms/latest.js')||!marketing.includes('DAT8TNJC77U5PB60DTT0')||!marketing.includes('969483765461099')||marketing.includes('cdn.utmify.com.br/scripts/pixel/pixel.js'))throw Error('Pixels da GelaCar não estão presentes no build');
 const checkout=await fs.readFile(path.join(root,'public','assets','checkout-C2qFdlwJ.js'),'utf8');

@@ -1,6 +1,6 @@
-# AutoBar — réplica local
+# GelaBar — loja e checkout
 
-Cópia da página pública `https://centralidealbr.com/produto/autobar`, obtida em 30/09/2026. A estrutura, CSS, fontes, imagens e módulos usados pela página foram preservados. Também há páginas locais de checkout, políticas e rastreio.
+Cópia da página pública `https://centralidealbr.com/produto/autobar`, obtida em 30/09/2026 e adaptada para a marca GelaBar. A rota `/produto/autobar` e os identificadores internos foram mantidos para preservar carrinhos, pedidos, pixels e integrações existentes. Também há páginas locais de checkout, políticas e rastreio.
 
 ## Executar
 
