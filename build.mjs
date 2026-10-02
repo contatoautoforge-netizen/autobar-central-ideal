@@ -23,6 +23,7 @@ for (const route of ['produto/autobar', 'politicas', 'rastreio']) {
   const page = path.join(out, route, 'index.html');
   let html = await fs.readFile(page, 'utf8');
   html=html.replaceAll('AutoBar','GelaBar').replaceAll('/media/1741b8ef711bc4a8.png','/brand/gelabar-logo.svg').replaceAll('/media/2cee687217d56fde.png','/brand/gelabar-logo.svg').replaceAll('/media/c18a77036ddbdcd3.png','/brand/gelabar-logo-white.svg');
+  if(route==='produto/autobar')html=html.replaceAll('https://centralidealbr.com/produto/autobar','https://gelabar.vercel.app/produto/autobar');
   html=html.replaceAll('/media/fd5d694cc3f25a88.webp','/media/gelabar-gallery-1.jpg').replaceAll('/media/66165014bfa0c775.webp','/media/gelabar-gallery-2.jpg').replaceAll('/media/a1e9bde41cf61aa9.webp','/media/gelabar-thumb.jpg').replaceAll('aria-label="Central Ideal — Início"','aria-label="GelaBar — Início"').replaceAll('alt="Central Ideal"','alt="GelaBar"');
   html=html.replaceAll('href="/favicon.png" type="image/png" sizes="64x64"','href="/brand/gelabar-favicon.png" type="image/png" sizes="64x64"').replaceAll('href="/apple-touch-icon.png"','href="/brand/gelabar-touch.png"');
   html = html.replace("connect-src 'self'", "connect-src 'self' https://personalizecar.vercel.app");

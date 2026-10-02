@@ -23,6 +23,7 @@ for (const [name, marker] of pages) {
 }
 const built=await fs.readFile(path.join(root,'public','produto','autobar','index.html'),'utf8');
 if(!built.includes('GelaBar™')||built.includes('AutoBar™')||!built.includes('/brand/gelabar-logo.svg'))throw Error('Marca GelaBar ausente do produto');
+if(!built.includes('rel="canonical" href="https://gelabar.vercel.app/produto/autobar"')||!built.includes('property="og:url" content="https://gelabar.vercel.app/produto/autobar"')||!built.includes('"price":"79.00"'))throw Error('Domínio ou preço GelaBar ausente dos metadados do produto');
 const builtCheckout=await fs.readFile(path.join(root,'public','checkout','index.html'),'utf8');
 const checkoutLogic=await fs.readFile(path.join(root,'public','checkout','autobar-checkout.js'),'utf8');
 if(builtCheckout.includes('AutoBar')||!builtCheckout.includes('GelaBar')||!checkoutLogic.includes('GelaBar™')||!checkoutLogic.includes('gelabar-thumb.jpg'))throw Error('Marca GelaBar ausente do checkout');
