@@ -1,4 +1,5 @@
 import {drawPixQr} from './pix-qr.js';
+import {paymentState,acceptsPaymentResponse} from './payment-state.js';
 import {digits,nationalPhone,formatCpf,formatCnpj,formatPhone,validCpf,validCnpj,validPhone,validCep,validName,validEmail} from './validation.js';
 
 const api='https://personalizecar.vercel.app/api/autobar';
@@ -8,6 +9,7 @@ const cartKey='store:cart',intentKey='autobar-inline-intent-v1',orderKey='autoba
 const $=id=>document.getElementById(id);
 const money=cents=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(cents/100);
 const errText={INVALID_CUSTOMER:'Revise nome, e-mail, CPF/CNPJ e celular.',INVALID_ADDRESS:'Revise o CEP e o endereço de entrega.',INVALID_PRODUCT:'A oferta mudou. Volte ao produto e atualize a compra.',INVALID_TOTAL:'O valor mudou. Revise o resumo e tente novamente.',PIX_MISSING:'O código Pix ainda não está disponível. Aguarde e tente novamente.',REQUEST_CONFLICT:'Os dados do pedido mudaram. Revise o resumo antes de tentar novamente.'};
+let paymentRevision=0;
 let personType='fisica',pixEnabled=false,paymentPoll=null,renderedPixCode='',creating=false,currentOrder=null,lookupController=null,lastZip='';
 
 function readCart(){
@@ -27,7 +29,7 @@ const fingerprint=()=>JSON.stringify([items.map(item=>[item.id,item.slug,item.pr
 const tracking=()=>{try{return JSON.parse(sessionStorage.getItem('autobar_attribution')||'{}')}catch{return {}}};
 const sessionId=()=>{let id=sessionStorage.getItem('autobar_session');if(!id){id=crypto.randomUUID();sessionStorage.setItem('autobar_session',id)}return id};
 const paymentRequest=async(action,body)=>{
-  const response=await fetch(`${api}?action=${action}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),cache:'no-store',referrerPolicy:'no-referrer'});
+  const response=await fetch(`${api}?action=${action}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),cache:'no-store',referrerPolicy:'no-referrer',signal:AbortSignal.timeout(25000)});
   const result=await response.json().catch(()=>({}));
   if(!response.ok)throw Error(result.error||'PAYMENT_UNAVAILABLE');
   return result;
@@ -77,6 +79,7 @@ function renderAll(){
   renderVariantReviews();
 }
 function invalidatePayment(message=''){
+  paymentRevision++;
   if(paymentPoll){clearInterval(paymentPoll);paymentPoll=null}
   currentOrder=null;renderedPixCode='';sessionStorage.removeItem(intentKey);sessionStorage.removeItem(orderKey);
   $('pix-result').hidden=true;$('pix-code').value='';$('pix-qr-section').hidden=true;$('pix-qr-error').hidden=true;
@@ -133,6 +136,8 @@ const timer=document.querySelector('header + div p:last-child strong');
 if(timer){const key='autobar-checkout-deadline-v1';let deadline=Number(sessionStorage.getItem(key));if(!deadline||deadline<Date.now()-86400000){deadline=Date.now()+900000;sessionStorage.setItem(key,String(deadline))}const tick=()=>{const seconds=Math.max(0,Math.ceil((deadline-Date.now())/1000));timer.textContent=`00:${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`};tick();setInterval(tick,1000)}
 $('summary-toggle').addEventListener('click',event=>{const content=event.currentTarget.nextElementSibling;content.hidden=!content.hidden;event.currentTarget.setAttribute('aria-expanded',String(!content.hidden))});
 $('coupon-apply').addEventListener('click',()=>{const message=$('coupon-message');message.hidden=false;message.textContent='Cupons não estão disponíveis nesta oferta.'});
+for(const form of [$('identity-form'),$('delivery-form')])form.addEventListener('input',()=>{if(currentOrder||creating)invalidatePayment('Os dados mudaram. Confira o pedido antes de gerar o Pix.');});
+
 document.querySelectorAll('[data-back]').forEach(button=>button.addEventListener('click',()=>step(Number(button.dataset.back))));
 
 $('zip').addEventListener('input',()=>{
@@ -157,14 +162,13 @@ $('delivery-form').addEventListener('submit',event=>{
 document.querySelectorAll('input[name="shipping-method"]').forEach(input=>input.addEventListener('change',()=>{const hadPix=!!currentOrder;sessionStorage.setItem('autobar-shipping-v1',selectedShipping().method);invalidatePayment(hadPix?'O Pix anterior corresponde ao frete antigo. Gere um novo código para esta opção.':'');renderAll()}));
 const savedShipping=sessionStorage.getItem('autobar-shipping-v1');if(savedShipping==='sedex')document.querySelector('input[name="shipping-method"][value="sedex"]').checked=true;
 
-function showPayment(order){
-  currentOrder=order;const status=order.status;
+function showPayment(order,verified=false){
+  currentOrder=order;const {status,paid,payable}=paymentState(order,{verified,expectedAmount:total()});
   if(Number.isInteger(order.amount)&&order.amount>0)$('pix-total').textContent=money(order.amount);
   const code=order.pix?.url||order.pix?.qrcode||'';
   $('pix-result').hidden=!code;$('pix-code').value=code;
   $('pix-preparation').hidden=!!code;
   $('pix-create').hidden=!!code&&!['REFUSED','CANCELED','ERROR'].includes(status);
-  const payable=status==='PENDING'||status==='UNKNOWN',paid=status==='PAID';
   const state=$('pix-state');state.classList.toggle('paid',paid);state.classList.toggle('failed',!paid&&!payable);
   state.querySelector('strong').textContent=paid?'Pagamento confirmado':payable?'Aguardando seu pagamento':status==='REFUNDED'?'Pagamento estornado':'Pagamento não confirmado';
   $('pix-qr-section').hidden=!payable||!code;$('pix-qr-error').hidden=true;
@@ -174,8 +178,18 @@ function showPayment(order){
   if(payable&&code&&!paymentPoll)paymentPoll=setInterval(()=>void refreshPayment(),15000);
   if(!payable&&paymentPoll){clearInterval(paymentPoll);paymentPoll=null}
   if(paid){window.autobarMarketing?.purchase(order.orderId,order.amount);sessionStorage.removeItem(intentKey)}
+  if(verified&&['REFUSED','CANCELED','ERROR'].includes(status))sessionStorage.removeItem(intentKey);
 }
-async function refreshPayment(){if(!currentOrder?.orderId||!currentOrder?.gatewayId)return;try{const next=await paymentRequest('status',{orderId:currentOrder.orderId,gatewayId:currentOrder.gatewayId});sessionStorage.setItem(orderKey,JSON.stringify({...next,fingerprint:fingerprint()}));showPayment(next)}catch{$('pix-status').textContent='Não foi possível consultar o status agora. Tentaremos novamente em instantes.'}}
+let checkingPayment=false;
+async function refreshPayment(){
+ if(checkingPayment||!currentOrder?.orderId||!currentOrder?.gatewayId)return;
+ const order=currentOrder,stamp=fingerprint(),amount=total();checkingPayment=true;
+ try{const next=await paymentRequest('status',{orderId:order.orderId,gatewayId:order.gatewayId});
+  if(currentOrder?.orderId!==order.orderId||!acceptsPaymentResponse(next,{fingerprint:stamp,currentFingerprint:fingerprint(),orderId:order.orderId,amount}))return;
+  sessionStorage.setItem(orderKey,JSON.stringify({...next,fingerprint:stamp}));showPayment(next,true);
+ }catch{if(currentOrder?.orderId===order.orderId)$('pix-status').textContent='Não foi possível consultar o status agora. Tentaremos novamente em instantes.'}
+ finally{checkingPayment=false}
+}
 
 $('pix-create').addEventListener('click',async()=>{
   if(!pixEnabled||!items.length||creating)return;
@@ -186,13 +200,14 @@ $('pix-create').addEventListener('click',async()=>{
   if(!intent||intent.stamp!==stamp){intent={stamp,key:crypto.randomUUID()};sessionStorage.setItem(intentKey,JSON.stringify(intent))}
   const body={requestKey:intent.key,paymentMethod:'PIX',amount:total(),shippingCents:shipping.cents,shippingMethod:shipping.method,discountCents:0,couponCode:null,giftWrapCents:0,customer:{name:$('customer-name').value.trim(),email:$('customer-email').value.trim(),phone:$('customer-phone').value,document:$('customer-document').value,documentType:personType==='fisica'?'CPF':'CNPJ'},address,items:items.map(item=>({id:item.id,slug:item.slug,title:item.kitQty===2?`2x ${item.slug==='agrobar'?'AgroBar':'GelaBar'}™`:`${item.slug==='agrobar'?'AgroBar':'GelaBar'}™`,unitPrice:item.price,quantity:item.quantity,variant:item.size||'',customization:{station:item.customization?.station||'',photoPath:item.customization?.photoPath||'',name:item.customization?.name||''}})),trackingParameters:tracking()};
   creating=true;$('pix-create').disabled=true;$('pix-status').textContent='Gerando cobrança Pix…';
-  try{const order=await paymentRequest('create',body);sessionStorage.setItem(orderKey,JSON.stringify({...order,fingerprint:fingerprint()}));showPayment(order)}
+  const requestedFingerprint=fingerprint(),requestedRevision=paymentRevision;
+  try{const order=await paymentRequest('create',body);if(requestedRevision!==paymentRevision)return;if(!acceptsPaymentResponse(order,{fingerprint:requestedFingerprint,currentFingerprint:fingerprint(),amount:total()})){if(requestedFingerprint===fingerprint())throw Error('INVALID_TOTAL');return}sessionStorage.setItem(orderKey,JSON.stringify({...order,fingerprint:requestedFingerprint}));showPayment(order,true)}
   catch(error){$('pix-status').textContent=errText[error.message]||'Não foi possível confirmar a cobrança. Aguarde e tente novamente com este pedido.'}
   finally{creating=false;$('pix-create').disabled=false}
 });
 $('pix-copy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText($('pix-code').value);$('pix-copy-label').textContent='Código copiado!';$('pix-status').textContent='Código Pix copiado. Cole no aplicativo do seu banco.';void paymentRequest('copy-pix',{id:sessionId(),orderId:currentOrder?.orderId,gatewayId:currentOrder?.gatewayId}).catch(()=>{});setTimeout(()=>$('pix-copy-label').textContent='Copiar código Pix',3000)}catch{$('pix-code').select();$('pix-status').textContent='Selecione e copie o código Pix.'}});
 $('pix-option').addEventListener('click',()=>{if(pixEnabled)$('pix-option').setAttribute('aria-pressed','true')});
-paymentRequest('config',{}).then(config=>{pixEnabled=config.checkoutEnabled===true;if(!pixEnabled){document.querySelector('.checkout-status').textContent='Pagamento Pix indisponível no momento.';return}$('pix-option').disabled=false;$('pix-option').setAttribute('aria-pressed','true');$('pix-label').textContent='DISPONÍVEL';$('payment-unavailable').hidden=true;$('pix-panel').hidden=false;document.querySelector('.checkout-status').hidden=true;let saved;try{saved=JSON.parse(sessionStorage.getItem(orderKey)||'null')}catch{}if(saved?.fingerprint===fingerprint()&&saved.orderId&&saved.gatewayId&&saved.pix){step(3);showPayment(saved);if(saved.status==='PENDING')void refreshPayment()}}).catch(()=>document.querySelector('.checkout-status').textContent='Não foi possível verificar o pagamento Pix agora.');
+paymentRequest('config',{}).then(config=>{pixEnabled=config.checkoutEnabled===true;if(!pixEnabled){document.querySelector('.checkout-status').textContent='Pagamento Pix indisponível no momento.';return}$('pix-option').disabled=false;$('pix-option').setAttribute('aria-pressed','true');$('pix-label').textContent='DISPONÍVEL';$('payment-unavailable').hidden=true;$('pix-panel').hidden=false;document.querySelector('.checkout-status').hidden=true;let saved;try{saved=JSON.parse(sessionStorage.getItem(orderKey)||'null')}catch{}if(saved?.fingerprint===fingerprint()&&saved.orderId&&saved.gatewayId&&saved.pix){step(3);showPayment(saved);void refreshPayment()}}).catch(()=>document.querySelector('.checkout-status').textContent='Não foi possível verificar o pagamento Pix agora.');
 
 document.querySelector('footer form')?.addEventListener('submit',event=>{event.preventDefault();const form=event.currentTarget;let note=form.nextElementSibling;if(!note?.classList?.contains('newsletter-note')){note=document.createElement('p');note.className='newsletter-note';note.textContent='Cadastro de e-mail indisponível neste checkout.';form.after(note)}});
 renderAll();

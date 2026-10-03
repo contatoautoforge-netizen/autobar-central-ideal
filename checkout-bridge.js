@@ -14,7 +14,7 @@
     }
   }catch{}
   const attribution=()=>{const q=new URLSearchParams(location.search),next=Object.fromEntries(marketingKeys.map(k=>[k,q.get(k)]).filter(([,v])=>v).map(([k,v])=>[k,v.slice(0,200)]));for(const key of ['_fbp','_fbc','_ttp']){const value=document.cookie.split('; ').find(part=>part.startsWith(key+'='))?.slice(key.length+1);if(value)next[key.slice(1)]=value.slice(0,600)}if(next.fbclid&&!next.fbc)next.fbc=`fb.1.${Date.now()}.${next.fbclid}`.slice(0,600);if(Object.keys(next).length){let old={};try{old=JSON.parse(sessionStorage.getItem('autobar_attribution')||'{}')}catch{}sessionStorage.setItem('autobar_attribution',JSON.stringify({...old,...next}))}try{return JSON.parse(sessionStorage.getItem('autobar_attribution')||'{}')}catch{return {}}};
-  const source=()=>{const a=attribution(),utm=String(a.utm_source||'').toLowerCase();return a.ttclid||utm.includes('tiktok')?'TikTok Ads':a.fbclid||/facebook|instagram|meta|fb/.test(utm)?'Meta Ads':utm?'Outras campanhas':'Orgânico/Direto'};
+  const source=()=>{const a=attribution(),utm=String(a.utm_source||'').toLowerCase();return a.ttclid||utm.includes('tiktok')?'TikTok Ads':a.fbclid||a.fbc||/facebook|instagram|meta|^fb$/.test(utm)?'Meta Ads':Object.entries(a).some(([k,v])=>k.startsWith('utm_')&&v&&!['organic','direct'].includes(String(v).toLowerCase()))?'Outras campanhas':'Orgânico/Direto'};
   const stage=()=>location.pathname==='/checkout'?(window.autobarCheckoutStep===3?'payment':'checkout'):location.pathname==='/pagamento-pix'?'payment':'home';
   const sessionId=()=>{let id=sessionStorage.getItem('autobar_session');if(!id){id=crypto.randomUUID();sessionStorage.setItem('autobar_session',id)}return id};
   window.autobarUploadPhoto=async(blob,mimeType)=>{
@@ -26,7 +26,7 @@
   };
   window.autobarLookupTracking=async query=>{try{const response=await originalFetch(`${api}?action=track`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q:query})});if(!response.ok)throw Error('Busca indisponível');return {data:(await response.json()).data||[],error:null}}catch(error){return {data:[],error}}};
   window.autobarCopiedPix=async()=>{try{await originalFetch(`${api}?action=copy-pix`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:sessionId()}),keepalive:true})}catch{}};
-  async function visit(){try{await originalFetch(`${api}?action=visit`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:sessionId(),stage:stage(),source:source()}),keepalive:true})}catch{}}
+  async function visit(){if(['localhost','127.0.0.1'].includes(location.hostname))return;try{await originalFetch(`${api}?action=visit`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:sessionId(),stage:stage(),source:source()}),keepalive:true})}catch{}}
   window.autobarRecordVisit=visit;
   window.fetch=(input,init={})=>{
     const url=typeof input==='string'?input:input?.url;
