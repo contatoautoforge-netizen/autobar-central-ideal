@@ -127,7 +127,7 @@ for(const [field,hintId] of [['customer-email','email-hint'],['customer-document
   input.addEventListener('blur',()=>{if(!input.value.trim())return;const check=identityChecks().find(([element])=>element===input);hint.textContent=check[1]?original:check[2];hint.classList.toggle('field-error',!check[1]);input.setAttribute('aria-invalid',String(!check[1]))});
   input.addEventListener('input',()=>{input.removeAttribute('aria-invalid');hint.textContent=original;hint.classList.remove('field-error');showError('identity-error',null,'')});
 }
-$('identity-form').addEventListener('submit',event=>{event.preventDefault();if(items.length&&validateIdentity())step(2)});
+$('identity-form').addEventListener('submit',event=>{event.preventDefault();if(items.length&&validateIdentity()){void window.autobarMarketing?.identify({email:$('customer-email').value,phone:$('customer-phone').value,document:$('customer-document').value});step(2)}});
 
 const timer=document.querySelector('header + div p:last-child strong');
 if(timer){const key='autobar-checkout-deadline-v1';let deadline=Number(sessionStorage.getItem(key));if(!deadline||deadline<Date.now()-86400000){deadline=Date.now()+900000;sessionStorage.setItem(key,String(deadline))}const tick=()=>{const seconds=Math.max(0,Math.ceil((deadline-Date.now())/1000));timer.textContent=`00:${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`};tick();setInterval(tick,1000)}
