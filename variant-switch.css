@@ -8,6 +8,7 @@
 .model-picker__option:focus-visible{outline:3px solid #f47636;outline-offset:2px}
 .model-picker__option[aria-current=page]{border:2px solid #24282a;background:#f7f8f8;box-shadow:0 3px 10px #0000000e}
 .model-picker__option img{width:52px;height:52px;flex:none;border-radius:8px;object-fit:cover;background:#f0f0f0}
+.model-picker__option img[src*="/agrobar-"]{object-fit:contain}
 .model-picker__copy{display:flex;flex-direction:column;min-width:0;gap:3px}
 .model-picker__copy strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:800;line-height:1.2}
 .model-picker__copy small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#666;font-size:11px;line-height:1.2}

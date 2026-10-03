@@ -19,6 +19,7 @@ footer img[alt="Pix"] {background:#fff;padding:2px;object-fit:contain;}
 .summary-body[hidden] {display:none;}
 .summary-item {position:relative;display:flex;align-items:flex-start;gap:12px;border:0;padding:16px 0 0;}
 .summary-item img {width:76px;height:76px;flex:0 0 76px;border-radius:8px;object-fit:cover;}
+.summary-item img[src*="/agrobar-"],.checkout-review-card img[src*="/agrobar-"] {object-fit:contain;background:#f7f7f7;}
 .summary-item-main {flex:1;min-width:0;}
 .summary-item-main strong {display:block;font-size:14px;font-weight:500;line-height:1.5;color:#363636;}
 .summary-item-main small {display:block;margin-top:3px;color:#8b8b8b;font-size:11px;font-style:italic;line-height:1.55;}

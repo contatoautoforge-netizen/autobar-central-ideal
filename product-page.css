@@ -21,4 +21,5 @@
 .product-cart-panel h2{font-size:24px;font-weight:800;margin:20px 0}.product-cart-panel>button:first-child{display:block;margin-left:auto}.product-cart-panel>button:last-child{display:block;margin:20px auto}
 .product-cart-row{display:grid;grid-template-columns:64px 1fr;gap:12px;padding:20px 0;border-bottom:1px solid #eee;font-size:14px}.product-cart-row img{width:64px;height:64px;object-fit:cover;border-radius:8px}.product-cart-row button{grid-column:2;text-align:left;text-decoration:underline}
 .product-cart-total{display:flex;justify-content:space-between;margin:24px 0}.product-primary{display:block;padding:16px;border-radius:12px;background:#23272a;color:#fff;text-align:center;font-weight:700}
+.product-cart-row img[src*="/agrobar-"]{object-fit:contain;background:#f7f7f7}
 #product-photo-status{font-size:13px;margin-top:8px}#product-photo-preview{margin-top:10px;border-radius:10px}#product-photo-remove{font-size:13px;text-decoration:underline;margin-top:8px}
