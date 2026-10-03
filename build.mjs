@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {renderAutobarCheckout} from './checkout/render.mjs';
+import {stabilizeStorefront} from './storefront-build.mjs';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const out = path.join(root, 'public');
@@ -12,7 +13,7 @@ await fs.mkdir(out, { recursive: true });
 for (const name of ['assets', 'media', 'brand', 'produto', 'checkout', 'pagamento-pix', 'politicas', 'rastreio']) {
   await fs.cp(path.join(root, name), path.join(out, name), { recursive: true });
 }
-for (const name of ['favicon.png', 'apple-touch-icon.png', 'site.webmanifest', 'checkout-notice.js', 'checkout-bridge.js', 'marketing.js', 'pix.js', 'variant-switch.js', 'variant-switch.css']) {
+for (const name of ['favicon.png', 'apple-touch-icon.png', 'site.webmanifest', 'checkout-notice.js', 'checkout-bridge.js', 'marketing.js', 'pix.js', 'variant-switch.js', 'variant-switch.css', 'storefront-state.js']) {
   await fs.copyFile(path.join(root, name), path.join(out, name));
 }
 await fs.writeFile(path.join(out,'checkout','index.html'),await renderAutobarCheckout(root));
@@ -125,4 +126,5 @@ const timeline='function A(e){const steps=[{icon:(0,T.jsx)(m,{className:`h-5 w-5
 tracking=tracking.slice(0,timelineStart)+timeline+tracking.slice(timelineEnd);
 tracking=tracking.replace('Pedidos são despachados no dia seguinte à compra, às 9h32.','Acompanhe o status informado pela loja.').replace('Confira o código, CPF ou telefone e tente novamente.','Confira o código do pedido ou de rastreio e tente novamente.').replace('placeholder:`Buscar meu pedido`','placeholder:`Código do pedido ou de rastreio`');
 await fs.writeFile(trackingBundle,tracking);
+await stabilizeStorefront(out);
 console.log('Arquivos estáticos prontos em public/');

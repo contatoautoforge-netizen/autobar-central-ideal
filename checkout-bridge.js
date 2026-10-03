@@ -40,6 +40,18 @@
     if(url==='/api/public/check-payment-status')return originalFetch(`${api}?action=status`,init).then(async response=>{if(response.ok){const copy=response.clone(),result=await copy.json().catch(()=>({}));if(result.status==='PAID'){sessionStorage.removeItem('autobar_order_intent');window.autobarMarketing?.purchase(result.orderId,result.amount)}}return response});
     return originalFetch(input,init);
   };
-  document.addEventListener('click',event=>{const link=event.target.closest?.('a[href]');if(!link||link.target||event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;const url=new URL(link.href,location.href);if(url.origin===location.origin&&url.pathname==='/checkout'){event.preventDefault();location.assign(url.href)}},true);
+  document.addEventListener('click',event=>{
+    const link=event.target.closest?.('a[href]');
+    if(!link||link.target||link.hasAttribute('download')||link.matches('.model-picker__option')||event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
+    const url=new URL(link.href,location.href);
+    if(url.origin!==location.origin)return;
+    if(url.pathname==='/'||url.pathname==='/produtos')url.pathname='/produto/autobar';
+    if(!['/produto/autobar','/produto/agrobar','/checkout','/pagamento-pix','/politicas','/rastreio'].includes(url.pathname))return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    // These routes are separately published HTML documents, not routes served
+    // by the original store's application server.
+    location.assign(url.href);
+  },true);
   addEventListener('popstate',visit);addEventListener('pageshow',visit);setInterval(()=>{if(!document.hidden)void visit()},30000);void visit();
 })();

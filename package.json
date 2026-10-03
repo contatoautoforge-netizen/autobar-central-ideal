@@ -6,6 +6,7 @@
     "dev": "node server.mjs",
     "build": "node build.mjs",
     "mirror": "node mirror.mjs && node localize-media.mjs && node sanitize.mjs",
-    "check": "node check.mjs"
+    "check": "node check.mjs",
+    "test": "node --test storefront-state.test.mjs"
   }
 }
