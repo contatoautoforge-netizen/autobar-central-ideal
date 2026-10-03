@@ -1,0 +1,24 @@
+[hidden]{display:none!important}
+.pdp-fade-in{opacity:1!important;animation:none!important}
+[data-station][aria-pressed=true],[data-kit][aria-pressed=true]{border-color:#23272a!important;box-shadow:0 0 0 1px #23272a!important;background:#f7f9fc!important}
+[data-kit][aria-pressed=false]{border-color:#e6e6e6!important;box-shadow:none!important;background:#fff!important}
+[data-kit] .rounded-full.border-2{border-color:#dcdcdc!important}
+[data-kit] .rounded-full.border-2>div{display:none}
+[data-kit][aria-pressed=true] .rounded-full.border-2{border-color:#23272a!important}
+[data-kit][aria-pressed=true] .rounded-full.border-2:after{content:"";width:9px;height:9px;border-radius:50%;background:#23272a}
+[data-gallery-index][aria-pressed=true]{border-color:#23272a}
+[data-gallery-index][aria-pressed=false]{border-color:#e6e6e6}
+.product-gallery-dot{height:6px;width:6px;border-radius:8px;background:#ffffff66;transition:width .2s}
+.product-gallery-dot.is-current{width:16px;background:white}
+.product-message:not(:empty){padding:12px;margin-top:12px;border-radius:10px;background:#fff6de;color:#4e3711;font-size:14px}
+.product-accordion{padding:0 16px 16px 32px;color:#656565;font-size:15px;line-height:1.6}
+.product-menu{padding:20px;display:flex;justify-content:center;gap:20px;flex-wrap:wrap;border-bottom:1px solid #eee}
+.product-footer{background:#23272a;color:#fff;padding:44px 24px;margin-top:40px;text-align:center}
+.product-footer img{margin:0 auto 16px}.product-footer p{margin:14px 0;font-size:14px}.product-footer nav{display:flex;gap:18px;flex-wrap:wrap;justify-content:center}
+.product-cart-count{position:absolute;right:0;top:0;background:#23272a;color:#fff;border-radius:20px;min-width:18px;font-size:11px;line-height:18px}
+.product-cart-overlay{position:fixed;inset:0;z-index:1000;background:#0006;display:flex;justify-content:flex-end}
+.product-cart-panel{width:min(100%,440px);height:100%;overflow:auto;background:#fff;padding:24px;color:#23272a;box-shadow:-8px 0 30px #0002}
+.product-cart-panel h2{font-size:24px;font-weight:800;margin:20px 0}.product-cart-panel>button:first-child{display:block;margin-left:auto}.product-cart-panel>button:last-child{display:block;margin:20px auto}
+.product-cart-row{display:grid;grid-template-columns:64px 1fr;gap:12px;padding:20px 0;border-bottom:1px solid #eee;font-size:14px}.product-cart-row img{width:64px;height:64px;object-fit:cover;border-radius:8px}.product-cart-row button{grid-column:2;text-align:left;text-decoration:underline}
+.product-cart-total{display:flex;justify-content:space-between;margin:24px 0}.product-primary{display:block;padding:16px;border-radius:12px;background:#23272a;color:#fff;text-align:center;font-weight:700}
+#product-photo-status{font-size:13px;margin-top:8px}#product-photo-preview{margin-top:10px;border-radius:10px}#product-photo-remove{font-size:13px;text-decoration:underline;margin-top:8px}

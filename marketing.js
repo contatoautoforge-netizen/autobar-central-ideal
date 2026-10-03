@@ -22,6 +22,7 @@
   const session=()=>{let id=sessionStorage.getItem('autobar_session');if(!id){id=crypto.randomUUID();sessionStorage.setItem('autobar_session',id)}return id};
   function route(){if(['/produto/autobar','/produto/agrobar'].includes(location.pathname))track('ViewContent',action('view:'+currentSlug()),79);if(location.pathname==='/checkout')track('InitiateCheckout',action('checkout'),cartValue())}
   window.autobarMarketing={track,identify,paymentStarted:amount=>track('AddPaymentInfo',action('payment'),Number(amount)/100),purchase:(orderId,amount)=>{if(/^[0-9a-f-]{36}$/i.test(orderId))track('Purchase',orderId,Number(amount)/100)}};
-  document.addEventListener('click',event=>{const button=event.target.closest('button');if(button&&/adicionar.{0,20}carrinho|comprar agora/i.test(button.textContent||'')&&['/produto/autobar','/produto/agrobar'].includes(location.pathname))setTimeout(()=>track('AddToCart',crypto.randomUUID(),cartValue()),200)},{capture:true});
+  document.addEventListener('gelabar:cart-added',event=>{try{track('AddToCart',crypto.randomUUID(),event.detail.value)}catch{}});
+  document.addEventListener('click',event=>{const button=event.target.closest('button');if(button&&/adicionar.{0,20}carrinho|comprar agora/i.test(button.textContent||'')&&location.pathname==='/produto/agrobar')setTimeout(()=>track('AddToCart',crypto.randomUUID(),cartValue()),200)},{capture:true});
   addEventListener('online',()=>void flush());setInterval(()=>void flush(),30000);addEventListener('popstate',route);addEventListener('pageshow',()=>{route();void flush()});route();void flush();
 })();
