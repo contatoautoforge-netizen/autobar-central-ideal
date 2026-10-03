@@ -26,6 +26,7 @@ export function extractStoreData(html) {
 export async function stabilizeStorefront(out) {
   const page = path.join(out, 'produto/autobar/index.html');
   let html = await fs.readFile(page, 'utf8');
+  html = html.replaceAll('/__l5e/assets-v1/dbf22a88-00a7-4192-ab53-1e81c93c2fdc/bandeira-brasil.png', '/assets/br-flag-B8GlnmMc.png');
   const {settings, product} = extractStoreData(html);
   const picker = `<nav id="gelabar-variant-switch" class="model-picker" aria-label="Escolha o modelo do produto">${pickerContent}</nav>`;
   html = replaceOnce(html, '<h1 ', picker + '<h1 ', 'seletor renderizado');
